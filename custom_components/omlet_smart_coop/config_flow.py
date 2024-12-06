@@ -24,7 +24,7 @@ class OmletSmartCoopConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 errors["base"] = "invalid_api_key"
 
         return self.async_show_form(
-            step_id="get_api_key",
+            step_id="user",
             data_schema=vol.Schema({vol.Required(API_KEY): str}),
             errors=errors,
         )
