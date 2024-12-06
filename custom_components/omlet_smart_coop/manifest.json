@@ -1,9 +1,0 @@
-{
-  "domain": "omlet_smart_coop",
-  "name": "Omlet Smart Coop Door",
-  "documentation": "TBD",
-  "dependencies": [],
-  "codeowners": ["@kemathy"],
-  "requirements": [],
-  "version": "1.0"
-}
