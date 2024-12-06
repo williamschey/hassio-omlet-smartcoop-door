@@ -9,7 +9,7 @@ class SmartCoopAPI:
 
     def get_devices(self):
         """Retrieve all devices from the API."""
-        if self.last_update == None:
+        if not hasattr(self, 'last_update'):
             self.devices = self.omlet.get_devices()
             self.last_update = datetime.datetime.now()
         self.hass.async_add_executor_job(self.refresh)
