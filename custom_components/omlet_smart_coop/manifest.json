@@ -1,0 +1,8 @@
+{
+  "domain": "omlet_smart_coop",
+  "name": "Omlet Smart Coop",
+  "version": "0.8.1",
+  "requirements": ["smartcoop-python-sdk>=1.0.0"],
+  "config_flow": true,
+  "codeowners": ["@williamschey"]
+}

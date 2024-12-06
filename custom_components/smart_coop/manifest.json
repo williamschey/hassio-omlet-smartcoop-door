@@ -1,8 +1,0 @@
-{
-  "domain": "smart_coop",
-  "name": "Smart Coop",
-  "version": "0.8.0",
-  "requirements": ["smartcoop-python-sdk==0.1.0"],
-  "codeowners": ["@williamschey"],
-  "config_flow": true
-}
