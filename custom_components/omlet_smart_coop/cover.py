@@ -1,5 +1,9 @@
-from homeassistant.components.cover import CoverEntity
 from .const import DOMAIN
+from homeassistant.components.cover import (
+    CoverDeviceClass,
+    CoverEntity,
+    CoverEntityFeature,
+)
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Set up Omlet Smart Coop light."""
@@ -12,6 +16,11 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
 class CoopCover(CoverEntity):
     """Representation of the coop door."""
+
+    _attr_device_class = CoverDeviceClass.DOOR
+    _attr_supported_features: CoverEntityFeature = (
+        CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE 
+    )
 
     def __init__(self, api, device):
         self.api = api
