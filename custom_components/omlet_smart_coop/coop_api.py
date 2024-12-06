@@ -12,7 +12,7 @@ class SmartCoopAPI:
 
     def get_device_state(self, device, key):
         """Get a specific state of a device."""
-        return getattr(device.state, "light")
+        return getattr(device.state, key)
 
     def perform_action(self, device, key, value):
         """Set a specific state for a device."""
