@@ -18,7 +18,7 @@ class OmletSmartCoopConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             try:
                 client = SmartCoopClient(client_secret=api_key)
                 api = Omlet(client)
-                api.get_devices() # This will cause an exception if the api_key is wrong
+                # await self.hass.async_add_executor_job(api.get_devices())               
                 return self.async_create_entry(title="Omlet Smart Coop", data=user_input)
             except HTTPError:
                 errors["base"] = "invalid_api_key"
