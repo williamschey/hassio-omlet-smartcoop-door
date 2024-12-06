@@ -17,6 +17,7 @@ class CoopLight(LightEntity):
         self.api = api
         self.device = device
         self._name = f"{device.name} Light"
+        self.color_mode = None
 
     @property
     def name(self):

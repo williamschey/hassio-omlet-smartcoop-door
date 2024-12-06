@@ -58,4 +58,4 @@ class CoopWifiStrength(SensorEntity):
     @property
     def state(self):
         state = self.api.get_device_state(self.device, "connectivity")
-        return getattr(state, "wifistrength")
+        return getattr(state, "wifiStrength")

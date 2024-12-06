@@ -24,7 +24,7 @@ class CoopDoorSwitch(SwitchEntity):
 
     @property
     def is_on(self):
-        return self.api.get_device_state(self.device, "door_state") == "open"
+        return self.api.get_device_state(self.device, "door").state == "open"
 
     async def async_turn_on(self, **kwargs):
         await self.api.perform_action(self.device, "open")
