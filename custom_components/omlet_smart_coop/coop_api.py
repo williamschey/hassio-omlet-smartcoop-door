@@ -6,24 +6,27 @@ class SmartCoopAPI:
     def __init__(self, api_key):
         client = SmartCoopClient(client_secret=api_key)
         self.omlet = Omlet(client)
-        self.devices = self.omlet.get_devices()
-        self.last_update = datetime.datetime.now()
 
     def get_devices(self):
         """Retrieve all devices from the API."""
-        self.refresh(self)
+        if self.last_update == None:
+            self.devices = self.omlet.get_devices()
+            self.last_update = datetime.datetime.now()
+        self.hass.async_add_executor_job(self.refresh)
         return self.devices
     
     def refresh(self):
         newNow = datetime.datetime.now()
         if abs((self.last_update - newNow).seconds) > 10:
+            result = self.omlet.get_devices              
+                
             self.devices = self.omlet.get_devices()
             self.last_update = datetime.datetime.now()
 
 
     def get_device_state(self, device, key):
         """Get a specific state of a device."""
-        self.refresh(self)
+        self.hass.async_add_executor_job(self.refresh)
         mydevice = next((updateddevice for updateddevice in self.devices if updateddevice.deviceId == device.deviceId), None)
         return getattr(mydevice.state, key)
 
