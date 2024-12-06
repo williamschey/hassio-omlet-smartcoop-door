@@ -25,7 +25,7 @@ class CoopBatterySensor(SensorEntity):
     _attr_device_class = SensorDeviceClass.BATTERY
     _attr_state_class = SensorStateClass.MEASUREMENT
     
-    def __init__(self, api, device, name):
+    def __init__(self, api, device):
         self.api = api
         self.device = device
         self._attr_name = f"{device.name} Battery Level"
@@ -46,7 +46,7 @@ class CoopWifiStrength(SensorEntity):
     _attr_device_class = SensorDeviceClass.SIGNAL_STRENGTH
     _attr_state_class = SensorStateClass.MEASUREMENT
     
-    def __init__(self, api, device, name):
+    def __init__(self, api, device):
         self.api = api
         self.device = device
         self._attr_name = f"{device.name} Wi-Fi Strength"
