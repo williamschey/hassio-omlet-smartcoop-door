@@ -24,10 +24,10 @@ class CoopLight(LightEntity):
 
     @property
     def is_on(self):
-        return self.api.get_device_state(self.device, "light")
+        return self.api.get_device_state(self.device, "light").state
 
     async def async_turn_on(self, **kwargs):
-        await self.api.set_device_state(self.device, "light", True)
+        await self.api.perform_action(self.device, "on", True)
 
     async def async_turn_off(self, **kwargs):
-        await self.api.set_device_state(self.device, "light", False)
+        await self.api.perform_action(self.device, "off", False)

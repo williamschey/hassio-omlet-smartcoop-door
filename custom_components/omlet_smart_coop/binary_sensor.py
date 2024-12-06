@@ -24,4 +24,4 @@ class CoopDoorState(BinarySensorEntity):
 
     @property
     def is_on(self):
-        return self.api.get_device_state(self.device, "door_state") == "open"
+        return self.api.get_device_state(self.device, "door").state == "open"
