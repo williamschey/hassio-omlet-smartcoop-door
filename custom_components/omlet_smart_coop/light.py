@@ -17,15 +17,18 @@ class CoopLight(LightEntity):
         self.api = api
         self.device = device
         self._name = f"{device.name} Light"
-        self.color_mode = None
 
+    @property
+    def color_mode(self):
+        return None
+    
     @property
     def name(self):
         return self._name
 
     @property
     def is_on(self):
-        return self.api.get_device_state(self.device, "light").state
+        return self.api.get_device_state(self.device, "light").state == 'on'
 
     async def async_turn_on(self, **kwargs):
         await self.api.perform_action(self.device, "on", True)
