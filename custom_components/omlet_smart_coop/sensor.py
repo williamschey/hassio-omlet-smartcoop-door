@@ -30,7 +30,11 @@ class CoopBatterySensor(SensorEntity):
         self.api = api
         self.device = device
         self._attr_name = f"{device.name} Battery Level"
-        self.entity_id = generate_entity_id("sensor.{}_batt", device.deviceId)
+        self._attr_unique_id = generate_entity_id("sensor.{}_batt", device.deviceId)
+
+    @property
+    def unique_id(self):
+        return self._attr_unique_id
 
     @property
     def name(self):
@@ -56,7 +60,11 @@ class CoopWifiStrength(SensorEntity):
         self.api = api
         self.device = device
         self._attr_name = f"{device.name} Wi-Fi Strength"
-        self.entity_id = generate_entity_id("sensor.{}_wifi", device.deviceId)
+        self._attr_unique_id = generate_entity_id("sensor.{}_wifi", device.deviceId)
+        
+    @property
+    def unique_id(self):
+        return self._attr_unique_id
 
     @property
     def name(self):

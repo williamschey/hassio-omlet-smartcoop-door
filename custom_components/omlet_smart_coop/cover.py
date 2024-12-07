@@ -27,7 +27,11 @@ class CoopCover(CoverEntity):
         self.api = api
         self.device = device
         self._name = f"{device.name} Door"
-        self.entity_id = generate_entity_id("cover.{}", device.deviceId)
+        self._attr_unique_id = generate_entity_id("cover.{}", device.deviceId)
+        
+    @property
+    def unique_id(self):
+        return self._attr_unique_id
     
     @property
     def name(self):

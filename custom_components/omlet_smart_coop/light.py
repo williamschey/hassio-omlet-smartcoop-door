@@ -18,7 +18,11 @@ class CoopLight(LightEntity):
         self.api = api
         self.device = device
         self._name = f"{device.name} Light"
-        self.entity_id = generate_entity_id("light.{}", device.deviceId)
+        self._attr_unique_id = generate_entity_id("light.{}", device.deviceId)
+
+    @property
+    def unique_id(self):
+        return self._attr_unique_id
 
     @property
     def color_mode(self):
