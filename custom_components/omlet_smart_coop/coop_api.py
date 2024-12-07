@@ -36,5 +36,5 @@ class SmartCoopAPI:
         """Set a specific state for a device."""
         mydevice = self.get_device(device)
         omlet_action = next((action for action in mydevice.actions if action.name == key), None)
-        self.hass.async_add_executor_job(self.omlet.perform_action, omlet_action)    
+        return self.hass.async_add_executor_job(self.omlet.perform_action, omlet_action)    
         

@@ -59,12 +59,12 @@ class CoopCover(CoordinatorEntity, CoverEntity):
     @property
     def is_closing(self) -> bool:
         self._attr_is_closing = self.api.get_device_state(self.device, "door").state == "closing"
-        return self._attr_is_closed
+        return self._attr_is_closing
 
     @property
     def is_opening(self) -> bool:
         self._attr_is_opening = self.api.get_device_state(self.device, "door").state == "opening"
-        return self._attr_is_closed
+        return self._attr_is_opening
     
     @callback
     def _handle_coordinator_update(self) -> None:
