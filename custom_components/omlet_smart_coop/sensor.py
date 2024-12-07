@@ -5,6 +5,7 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.const import PERCENTAGE, SIGNAL_STRENGTH_DECIBELS_MILLIWATT
+from homeassistant.helpers.entity import generate_entity_id
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Set up Omlet Smart Coop sensors."""
@@ -29,6 +30,7 @@ class CoopBatterySensor(SensorEntity):
         self.api = api
         self.device = device
         self._attr_name = f"{device.name} Battery Level"
+        self.entity_id = generate_entity_id("sensor.{}_batt", device.deviceId)
 
     @property
     def name(self):
@@ -38,6 +40,10 @@ class CoopBatterySensor(SensorEntity):
     def state(self):
         state = self.api.get_device_state(self.device, "general")
         return getattr(state, "batteryLevel")
+    
+    @property
+    def last_updated(self):
+        return self.api.last_updated()
 
 class CoopWifiStrength(SensorEntity):
     """Representation of a Smart Coop wifi sensor."""
@@ -50,6 +56,7 @@ class CoopWifiStrength(SensorEntity):
         self.api = api
         self.device = device
         self._attr_name = f"{device.name} Wi-Fi Strength"
+        self.entity_id = generate_entity_id("sensor.{}_wifi", device.deviceId)
 
     @property
     def name(self):
@@ -59,3 +66,7 @@ class CoopWifiStrength(SensorEntity):
     def state(self):
         state = self.api.get_device_state(self.device, "connectivity")
         return getattr(state, "wifiStrength")
+    
+    @property
+    def last_updated(self):
+        return self.api.last_updated()

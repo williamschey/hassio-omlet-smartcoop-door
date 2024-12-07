@@ -24,6 +24,8 @@ class SmartCoopAPI:
             self.devices = self.omlet.get_devices()
             self.last_update = datetime.datetime.now()
 
+    def last_updated(self):
+        return self.last_update
 
     def get_device_state(self, device, key):
         """Get a specific state of a device."""

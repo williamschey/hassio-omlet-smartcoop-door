@@ -1,5 +1,6 @@
 from homeassistant.components.light import LightEntity
 from .const import DOMAIN
+from homeassistant.helpers.entity import generate_entity_id
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Set up Omlet Smart Coop light."""
@@ -17,6 +18,7 @@ class CoopLight(LightEntity):
         self.api = api
         self.device = device
         self._name = f"{device.name} Light"
+        self.entity_id = generate_entity_id("light.{}", device.deviceId)
 
     @property
     def color_mode(self):
@@ -25,6 +27,10 @@ class CoopLight(LightEntity):
     @property
     def name(self):
         return self._name
+    
+    @property
+    def last_updated(self):
+        return self.api.last_updated()
 
     @property
     def is_on(self):

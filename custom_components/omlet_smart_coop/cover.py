@@ -4,6 +4,7 @@ from homeassistant.components.cover import (
     CoverEntity,
     CoverEntityFeature,
 )
+from homeassistant.helpers.entity import generate_entity_id
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Set up Omlet Smart Coop light."""
@@ -26,10 +27,15 @@ class CoopCover(CoverEntity):
         self.api = api
         self.device = device
         self._name = f"{device.name} Door"
+        self.entity_id = generate_entity_id("cover.{}", device.deviceId)
     
     @property
     def name(self):
         return self._name
+    
+    @property
+    def last_updated(self):
+        return self.api.last_updated()
 
     @property
     def is_closed(self) -> bool:
