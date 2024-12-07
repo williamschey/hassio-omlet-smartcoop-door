@@ -27,6 +27,11 @@ class SmartCoopAPI:
     def last_updated(self):
         return self.last_update
 
+    def get_device(self, device):
+        """Get a specific state of a device."""
+        self.hass.async_add_executor_job(self.refresh)
+        return next((updateddevice for updateddevice in self.devices if updateddevice.deviceId == device.deviceId), None)
+
     def get_device_state(self, device, key):
         """Get a specific state of a device."""
         self.hass.async_add_executor_job(self.refresh)

@@ -24,13 +24,15 @@ class CoopCover(CoverEntity):
     )
 
     def __init__(self, api, device):
+        super().__init__
         self.api = api
         self.device = device
         self._name = f"{device.name} Door"
-        self._attr_unique_id = generate_entity_id("cover.{}", device.deviceId)
-        
+        self._attr_unique_id = f"{device.deviceId}_cover"
+
     @property
-    def unique_id(self):
+    def unique_id(self) -> str | None:
+        """Return a unique ID."""
         return self._attr_unique_id
     
     @property

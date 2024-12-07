@@ -30,10 +30,11 @@ class CoopBatterySensor(SensorEntity):
         self.api = api
         self.device = device
         self._attr_name = f"{device.name} Battery Level"
-        self._attr_unique_id = generate_entity_id("sensor.{}_batt", device.deviceId)
+        self._attr_unique_id = f"{device.deviceId}_batt"
 
     @property
-    def unique_id(self):
+    def unique_id(self) -> str | None:
+        """Return a unique ID."""
         return self._attr_unique_id
 
     @property
@@ -48,6 +49,9 @@ class CoopBatterySensor(SensorEntity):
     @property
     def last_updated(self):
         return self.api.last_updated()
+    
+    def update(self):
+        self.device = self.api.get_device(self.device)
 
 class CoopWifiStrength(SensorEntity):
     """Representation of a Smart Coop wifi sensor."""
@@ -60,10 +64,11 @@ class CoopWifiStrength(SensorEntity):
         self.api = api
         self.device = device
         self._attr_name = f"{device.name} Wi-Fi Strength"
-        self._attr_unique_id = generate_entity_id("sensor.{}_wifi", device.deviceId)
-        
+        self._attr_unique_id = f"{device.deviceId}_wifi"
+
     @property
-    def unique_id(self):
+    def unique_id(self) -> str | None:
+        """Return a unique ID."""
         return self._attr_unique_id
 
     @property
@@ -78,3 +83,6 @@ class CoopWifiStrength(SensorEntity):
     @property
     def last_updated(self):
         return self.api.last_updated()
+    
+    def update(self):
+        self.device = self.api.get_device(self.device)
