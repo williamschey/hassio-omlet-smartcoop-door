@@ -17,12 +17,8 @@ class SmartCoopAPI:
         return self.devices
     
     def refresh(self):
-        newNow = datetime.datetime.now()
-        if abs((self.last_update - newNow).seconds) > 10:
-            result = self.omlet.get_devices              
-                
-            self.devices = self.omlet.get_devices()
-            self.last_update = datetime.datetime.now()
+        self.devices = self.omlet.get_devices()
+        self.last_update = datetime.datetime.now()
 
     def last_updated(self):
         return self.last_update
