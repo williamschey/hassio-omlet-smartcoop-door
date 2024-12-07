@@ -51,7 +51,8 @@ class CoopBatterySensor(CoordinatorEntity, SensorEntity):
     @property
     def state(self):
         state = self.api.get_device_state(self.device, "general")
-        return getattr(state, "batteryLevel")
+        self._attr_native_value = getattr(state, "batteryLevel")
+        return self._attr_native_value
     
     @property
     def last_updated(self):
@@ -65,6 +66,8 @@ class CoopBatterySensor(CoordinatorEntity, SensorEntity):
     
     def update(self):
         self.device = self.api.get_device(self.device)
+        state = self.api.get_device_state(self.device, "general")
+        self._attr_native_value = getattr(state, "batteryLevel")
 
 class CoopWifiStrength(CoordinatorEntity, SensorEntity):
     """Representation of a Smart Coop wifi sensor."""
@@ -92,7 +95,8 @@ class CoopWifiStrength(CoordinatorEntity, SensorEntity):
     @property
     def state(self):
         state = self.api.get_device_state(self.device, "connectivity")
-        return getattr(state, "wifiStrength")
+        self._attr_native_value = getattr(state, "wifiStrength")
+        return self._attr_native_value
     
     @property
     def last_updated(self):
@@ -106,3 +110,5 @@ class CoopWifiStrength(CoordinatorEntity, SensorEntity):
     
     def update(self):
         self.device = self.api.get_device(self.device)
+        state = self.api.get_device_state(self.device, "connectivity")
+        self._attr_native_value = getattr(state, "wifiStrength")

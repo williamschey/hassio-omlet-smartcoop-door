@@ -49,7 +49,7 @@ class CoopLight(CoordinatorEntity, LightEntity):
     @property
     def is_on(self):
         self._attr_is_on = self.api.get_device_state(self.device, "light").state == 'on'
-        return super().is_on()
+        return self._attr_is_on
     
     @callback
     def _handle_coordinator_update(self) -> None:
