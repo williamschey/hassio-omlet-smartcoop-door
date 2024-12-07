@@ -76,9 +76,7 @@ class CoopCoordinator(DataUpdateCoordinator):
             # Note: asyncio.TimeoutError and aiohttp.ClientError are already
             # handled by the data update coordinator.
             async with async_timeout.timeout(10):
-                # Grab active context variables to limit data required to be fetched from API
-                # Note: using context is not required if there is no need or ability to limit
                 # data retrieved from API.
-                return await self.my_api.refresh()
+                return await self.hass.async_add_executor_job(self.my_api.refresh)
         except Exception as err:
             raise UpdateFailed(f"Error communicating with API: {err}")
