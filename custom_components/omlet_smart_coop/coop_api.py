@@ -29,7 +29,6 @@ class SmartCoopAPI:
 
     def get_device(self, device):
         """Get a specific state of a device."""
-        self.hass.async_add_executor_job(self.refresh)
         return next((updateddevice for updateddevice in self.devices if updateddevice.deviceId == device.deviceId), None)
 
     def get_device_state(self, device, key):
@@ -43,5 +42,3 @@ class SmartCoopAPI:
         omlet_action = next((action for action in mydevice.actions if action.name == key), None)
         self.hass.async_add_executor_job(self.omlet.perform_action, omlet_action)    
         
-    def update(self):
-        self.device = self.api.get_device(self.device)
