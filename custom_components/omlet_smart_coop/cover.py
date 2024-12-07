@@ -1,3 +1,4 @@
+from custom_components.omlet_smart_coop.coop_api import SmartCoopAPI
 from .const import DOMAIN, API, DEVICES, COORDINATOR
 from homeassistant.core import callback
 from homeassistant.components.cover import (
@@ -29,7 +30,7 @@ class CoopCover(CoordinatorEntity, CoverEntity):
         CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE 
     )
 
-    def __init__(self, api, coordinator, device):
+    def __init__(self, api: SmartCoopAPI, coordinator, device):
         super().__init__
         self.api = api
         self.device = device
@@ -52,16 +53,20 @@ class CoopCover(CoordinatorEntity, CoverEntity):
 
     @property
     def is_closed(self) -> bool:
-        return self.api.get_device_state(self.device, "door").state == "closed"
+        super()._attr_is_closed = self.api.get_device_state(self.device, "door").state == "closed"
+        return super().is_closed()
+
     
 
     @property
     def is_closing(self) -> bool:
-        return self.api.get_device_state(self.device, "door").state == "closing"
+        super()._attr_is_closing = self.api.get_device_state(self.device, "door").state == "closing"
+        return super().is_closing()
 
     @property
     def is_opening(self) -> bool:
-        return self.api.get_device_state(self.device, "door").state == "opening"
+        super()._attr_is_opening = self.api.get_device_state(self.device, "door").state == "opening"
+        return super().is_opening()
     
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -71,9 +76,16 @@ class CoopCover(CoordinatorEntity, CoverEntity):
 
     async def async_open_cover(self, **kwargs):
         await self.api.perform_action(self.device, "open")
+        # Update the data
+        await self.coordinator.async_request_refresh()
 
     async def async_close_cover(self, **kwargs):
         await self.api.perform_action(self.device, "close")
+        # Update the data
+        await self.coordinator.async_request_refresh()
 
     def update(self):
         self.device = self.api.get_device(self.device)
+        super()._attr_is_closed = self.api.get_device_state(self.device, "door").state == "closed"
+        super()._attr_is_closing = self.api.get_device_state(self.device, "door").state == "closing"
+        super()._attr_is_opening = self.api.get_device_state(self.device, "door").state == "opening"

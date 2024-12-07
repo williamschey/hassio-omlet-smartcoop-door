@@ -1,4 +1,6 @@
 from homeassistant.components.light import LightEntity
+
+from custom_components.omlet_smart_coop.coop_api import SmartCoopAPI
 from .const import DOMAIN, API, DEVICES, COORDINATOR
 from homeassistant.core import callback
 from homeassistant.helpers.update_coordinator import (
@@ -20,7 +22,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
 class CoopLight(CoordinatorEntity, LightEntity):
     """Representation of the coop light."""
 
-    def __init__(self, api, coordinator, device):
+    def __init__(self, api: SmartCoopAPI, coordinator, device):
         self.api = api
         self.device = device
         self._name = f"{device.name} Light"
@@ -46,7 +48,8 @@ class CoopLight(CoordinatorEntity, LightEntity):
 
     @property
     def is_on(self):
-        return self.api.get_device_state(self.device, "light").state == 'on'
+        self.is_on = self.api.get_device_state(self.device, "light").state == 'on'
+        return super().is_on()
     
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -55,10 +58,15 @@ class CoopLight(CoordinatorEntity, LightEntity):
         self.async_write_ha_state()
 
     async def async_turn_on(self, **kwargs):
-        self.api.perform_action(self.device, "on", True)
+        self.api.perform_action(self.device, "on")
+        # Update the data
+        await self.coordinator.async_request_refresh()
 
     async def async_turn_off(self, **kwargs):
-        self.api.perform_action(self.device, "off", False)
+        self.api.perform_action(self.device, "off")
+        # Update the data
+        await self.coordinator.async_request_refresh()
 
     def update(self):
         self.device = self.api.get_device(self.device)
+        self.is_on = self.api.get_device_state(self.device, "light").state == 'on'

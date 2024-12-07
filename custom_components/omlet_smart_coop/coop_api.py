@@ -32,7 +32,7 @@ class SmartCoopAPI:
         mydevice = self.get_device(device)
         return getattr(mydevice.state, key)
 
-    def perform_action(self, device, key, value):
+    def perform_action(self, device, key):
         """Set a specific state for a device."""
         mydevice = self.get_device(device)
         omlet_action = next((action for action in mydevice.actions if action.name == key), None)
