@@ -35,7 +35,7 @@ class SmartCoopAPI:
     
     def wrap_perform_action(self, omlet_action):
         try:
-            return self.omlet.perform_action
+            return self.omlet.perform_action(omlet_action)
         except JSONDecodeError as ex:
             # ignore
             return
