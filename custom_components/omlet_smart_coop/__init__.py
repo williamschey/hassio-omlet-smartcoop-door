@@ -6,7 +6,7 @@ import async_timeout
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from .const import API_KEY, DOMAIN, PLATFORMS
+from .const import API_KEY, DOMAIN, PLATFORMS, COORDINATOR, API, DEVICES
 from .coop_api import SmartCoopAPI
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
@@ -23,9 +23,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     coordinator = CoopCoordinator(hass, api)
 
     devices = await hass.async_add_executor_job(api.get_devices)
-    hass.data[DOMAIN] = {"api": api, "devices": devices}
+    hass.data[DOMAIN] = {API: api, DEVICES: devices, COORDINATOR: coordinator}
 
-    await hass.config_entries.async_forward_entry_setups(coordinator, PLATFORMS)
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):

@@ -1,4 +1,4 @@
-from .const import DOMAIN
+from .const import DOMAIN, API, DEVICES, COORDINATOR
 from homeassistant.components.cover import (
     CoverDeviceClass,
     CoverEntity,
@@ -10,10 +10,11 @@ from homeassistant.helpers.update_coordinator import (
     UpdateFailed,
 )
 
-async def async_setup_entry(hass, coordinator, async_add_entities):
-    """Set up Omlet Smart Coop light."""
-    api = hass.data[DOMAIN]["api"]
-    devices = hass.data[DOMAIN]["devices"]
+async def async_setup_entry(hass, entry, async_add_entities):
+    """Set up Omlet Smart Coop cover."""
+    api = hass.data[DOMAIN][API]
+    devices = hass.data[DOMAIN][DEVICES]
+    coordinator = hass.data[DOMAIN][COORDINATOR]
 
     lights = [CoopCover(api, coordinator, device) for device in devices]
     async_add_entities(lights)

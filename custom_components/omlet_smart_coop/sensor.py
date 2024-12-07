@@ -1,4 +1,4 @@
-from .const import DOMAIN
+from .const import DOMAIN, API, DEVICES, COORDINATOR
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
@@ -11,10 +11,11 @@ from homeassistant.helpers.update_coordinator import (
     UpdateFailed,
 )
 
-async def async_setup_entry(hass, coordinator, async_add_entities):
+async def async_setup_entry(hass, entry, async_add_entities):
     """Set up Omlet Smart Coop sensors."""
-    api = hass.data[DOMAIN]["api"]
-    devices = hass.data[DOMAIN]["devices"]
+    api = hass.data[DOMAIN][API]
+    devices = hass.data[DOMAIN][DEVICES]
+    coordinator = hass.data[DOMAIN][COORDINATOR]
 
     sensors = []
     for device in devices:
