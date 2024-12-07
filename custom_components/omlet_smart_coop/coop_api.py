@@ -34,13 +34,14 @@ class SmartCoopAPI:
 
     def get_device_state(self, device, key):
         """Get a specific state of a device."""
-        self.hass.async_add_executor_job(self.refresh)
-        mydevice = next((updateddevice for updateddevice in self.devices if updateddevice.deviceId == device.deviceId), None)
+        mydevice = self.get_device(device)
         return getattr(mydevice.state, key)
 
     def perform_action(self, device, key, value):
         """Set a specific state for a device."""
-        mydevice = next((updateddevice for updateddevice in self.devices if updateddevice.deviceId == device.deviceId), None)
+        mydevice = self.get_device(device)
         omlet_action = next((action for action in mydevice.actions if action.name == key), None)
         self.hass.async_add_executor_job(self.omlet.perform_action, omlet_action)    
         
+    def update(self):
+        self.device = self.api.get_device(self.device)

@@ -4,18 +4,22 @@ from homeassistant.components.cover import (
     CoverEntity,
     CoverEntityFeature,
 )
-from homeassistant.helpers.entity import generate_entity_id
+from homeassistant.helpers.update_coordinator import (
+    CoordinatorEntity,
+    DataUpdateCoordinator,
+    UpdateFailed,
+)
 
-async def async_setup_entry(hass, entry, async_add_entities):
+async def async_setup_entry(hass, coordinator, async_add_entities):
     """Set up Omlet Smart Coop light."""
     api = hass.data[DOMAIN]["api"]
     devices = hass.data[DOMAIN]["devices"]
 
-    lights = [CoopCover(api, device) for device in devices]
+    lights = [CoopCover(api, coordinator, device) for device in devices]
     async_add_entities(lights)
 
 
-class CoopCover(CoverEntity):
+class CoopCover(CoordinatorEntity, CoverEntity):
     """Representation of the coop door."""
 
     _attr_device_class = CoverDeviceClass.DOOR
@@ -23,12 +27,13 @@ class CoopCover(CoverEntity):
         CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE 
     )
 
-    def __init__(self, api, device):
+    def __init__(self, api, coordinator, device):
         super().__init__
         self.api = api
         self.device = device
         self._name = f"{device.name} Door"
         self._attr_unique_id = f"{device.deviceId}_cover"
+        super().__init__(coordinator)
 
     @property
     def unique_id(self) -> str | None:
@@ -61,3 +66,6 @@ class CoopCover(CoverEntity):
 
     async def async_close_cover(self, **kwargs):
         await self.api.perform_action(self.device, "close")
+
+    def update(self):
+        self.device = self.api.get_device(self.device)
