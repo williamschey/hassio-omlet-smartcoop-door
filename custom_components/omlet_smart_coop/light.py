@@ -48,7 +48,7 @@ class CoopLight(CoordinatorEntity, LightEntity):
 
     @property
     def is_on(self):
-        self.is_on = self.api.get_device_state(self.device, "light").state == 'on'
+        self._attr_is_on = self.api.get_device_state(self.device, "light").state == 'on'
         return super().is_on()
     
     @callback
@@ -69,4 +69,4 @@ class CoopLight(CoordinatorEntity, LightEntity):
 
     def update(self):
         self.device = self.api.get_device(self.device)
-        self.is_on = self.api.get_device_state(self.device, "light").state == 'on'
+        self._attr_is_on = self.api.get_device_state(self.device, "light").state == 'on'
