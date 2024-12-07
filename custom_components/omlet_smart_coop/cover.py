@@ -53,19 +53,19 @@ class CoopCover(CoordinatorEntity, CoverEntity):
 
     @property
     def is_closed(self) -> bool:
-        super()._attr_is_closed = self.api.get_device_state(self.device, "door").state == "closed"
+        self._attr_is_closed = self.api.get_device_state(self.device, "door").state == "closed"
         return super().is_closed()
 
     
 
     @property
     def is_closing(self) -> bool:
-        super()._attr_is_closing = self.api.get_device_state(self.device, "door").state == "closing"
+        self._attr_is_closing = self.api.get_device_state(self.device, "door").state == "closing"
         return super().is_closing()
 
     @property
     def is_opening(self) -> bool:
-        super()._attr_is_opening = self.api.get_device_state(self.device, "door").state == "opening"
+        self._attr_is_opening = self.api.get_device_state(self.device, "door").state == "opening"
         return super().is_opening()
     
     @callback
@@ -86,6 +86,6 @@ class CoopCover(CoordinatorEntity, CoverEntity):
 
     def update(self):
         self.device = self.api.get_device(self.device)
-        super()._attr_is_closed = self.api.get_device_state(self.device, "door").state == "closed"
-        super()._attr_is_closing = self.api.get_device_state(self.device, "door").state == "closing"
-        super()._attr_is_opening = self.api.get_device_state(self.device, "door").state == "opening"
+        self._attr_is_closed = self.api.get_device_state(self.device, "door").state == "closed"
+        self._attr_is_closing = self.api.get_device_state(self.device, "door").state == "closing"
+        self._attr_is_opening = self.api.get_device_state(self.device, "door").state == "opening"
