@@ -1,9 +1,11 @@
 from smartcoop.client import SmartCoopClient
 from smartcoop.api.omlet import Omlet
+from homeassistant.core import HomeAssistant
 import datetime
 
 class SmartCoopAPI:
-    def __init__(self, api_key):
+    def __init__(self, api_key, hass: HomeAssistant):
+        self.hass = hass
         client = SmartCoopClient(client_secret=api_key)
         self.omlet = Omlet(client)
 

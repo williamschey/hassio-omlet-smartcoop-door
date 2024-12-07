@@ -6,7 +6,7 @@ from .coop_api import SmartCoopAPI
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up Omlet Smart Coop from a config entry."""
     api_key = entry.data[API_KEY]
-    api = SmartCoopAPI(api_key)
+    api = SmartCoopAPI(api_key, hass)
 
     devices = await hass.async_add_executor_job(api.get_devices)
     hass.data[DOMAIN] = {"api": api, "devices": devices}
