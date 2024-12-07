@@ -5,6 +5,7 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.const import PERCENTAGE, SIGNAL_STRENGTH_DECIBELS_MILLIWATT
+from homeassistant.core import callback
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
@@ -56,6 +57,12 @@ class CoopBatterySensor(CoordinatorEntity, SensorEntity):
     def last_updated(self):
         return self.api.last_updated()
     
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self.update()
+        self.async_write_ha_state()
+    
     def update(self):
         self.device = self.api.get_device(self.device)
 
@@ -90,6 +97,12 @@ class CoopWifiStrength(CoordinatorEntity, SensorEntity):
     @property
     def last_updated(self):
         return self.api.last_updated()
+    
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self.update()
+        self.async_write_ha_state()
     
     def update(self):
         self.device = self.api.get_device(self.device)

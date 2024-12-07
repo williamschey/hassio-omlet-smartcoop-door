@@ -1,4 +1,5 @@
 from .const import DOMAIN, API, DEVICES, COORDINATOR
+from homeassistant.core import callback
 from homeassistant.components.cover import (
     CoverDeviceClass,
     CoverEntity,
@@ -61,6 +62,12 @@ class CoopCover(CoordinatorEntity, CoverEntity):
     @property
     def is_opening(self) -> bool:
         return self.api.get_device_state(self.device, "door").state == "opening"
+    
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self.update()
+        self.async_write_ha_state()
 
     async def async_open_cover(self, **kwargs):
         await self.api.perform_action(self.device, "open")

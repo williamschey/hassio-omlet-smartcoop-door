@@ -1,5 +1,6 @@
 from homeassistant.components.light import LightEntity
 from .const import DOMAIN, API, DEVICES, COORDINATOR
+from homeassistant.core import callback
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
@@ -46,6 +47,12 @@ class CoopLight(CoordinatorEntity, LightEntity):
     @property
     def is_on(self):
         return self.api.get_device_state(self.device, "light").state == 'on'
+    
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self.update()
+        self.async_write_ha_state()
 
     async def async_turn_on(self, **kwargs):
         self.api.perform_action(self.device, "on", True)
