@@ -1,3 +1,4 @@
+from requests.exceptions import JSONDecodeError
 from smartcoop.client import SmartCoopClient
 from smartcoop.api.omlet import Omlet
 from homeassistant.core import HomeAssistant
@@ -31,10 +32,17 @@ class SmartCoopAPI:
         """Get a specific state of a device."""
         mydevice = self.get_device(device)
         return getattr(mydevice.state, key)
+    
+    def wrap_perform_action(self, omlet_action):
+        try:
+            return self.omlet.perform_action
+        except JSONDecodeError as ex:
+            # ignore
+            return
 
     def perform_action(self, device, key):
         """Set a specific state for a device."""
         mydevice = self.get_device(device)
         omlet_action = next((action for action in mydevice.actions if action.name == key), None)
-        return self.hass.async_add_executor_job(self.omlet.perform_action, omlet_action)    
+        return self.hass.async_add_executor_job(self.wrap_perform_action, omlet_action)    
         
