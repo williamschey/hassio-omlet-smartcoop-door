@@ -2,7 +2,6 @@ from .coop_api import SmartCoopAPI
 from .coordinator import CoopCoordinator
 from .entity import OmletBaseEntity
 from .const import DOMAIN, API, DEVICES, COORDINATOR
-from homeassistant.core import callback
 from homeassistant.components.cover import (
     CoverDeviceClass,
     CoverEntity,
@@ -33,25 +32,19 @@ class CoopCover(OmletBaseEntity, CoverEntity):
 
     @property
     def is_closed(self) -> bool:
-        self._attr_is_closed = self.api.get_device_state(self.device, "door").state == "closed"
+        self.update()
         return self._attr_is_closed
 
     @property
     def is_closing(self) -> bool:
-        self._attr_is_closing = self.api.get_device_state(self.device, "door").state == "closing"
+        self.update()
         return self._attr_is_closing
 
     @property
     def is_opening(self) -> bool:
-        self._attr_is_opening = self.api.get_device_state(self.device, "door").state == "opening"
+        self.update()
         return self._attr_is_opening
     
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
-        self.update()
-        self.async_write_ha_state()
-
     async def async_open_cover(self, **kwargs):
         await self.api.perform_action(self.device, "open")
         # Update the data

@@ -4,7 +4,6 @@ from .coop_api import SmartCoopAPI
 from .coordinator import CoopCoordinator
 from .const import DOMAIN, API, DEVICES, COORDINATOR
 from .entity import OmletBaseEntity
-from homeassistant.core import callback
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Set up Omlet Smart Coop light."""
@@ -21,36 +20,18 @@ class CoopLight(OmletBaseEntity, LightEntity):
 
     def __init__(self, api: SmartCoopAPI, coordinator: CoopCoordinator, device):
         self._name = f"{device.name} Light"
+        self._attr_color_mode = None
         super().__init__(api, coordinator, device, "light")
 
     @property
-    def unique_id(self) -> str | None:
-        """Return a unique ID."""
-        return self._attr_unique_id
-
-    @property
     def color_mode(self):
-        return None
+        return self._attr_color_mode
     
-    @property
-    def name(self):
-        return self._name
-    
-    @property
-    def last_updated(self):
-        return self.api.last_updated()
-
     @property
     def is_on(self):
-        self._attr_is_on = self.api.get_device_state(self.device, "light").state == 'on'
+        self.update()
         return self._attr_is_on
     
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
-        self.update()
-        self.async_write_ha_state()
-
     async def async_turn_on(self, **kwargs):
         self.api.perform_action(self.device, "on")
         # Update the data

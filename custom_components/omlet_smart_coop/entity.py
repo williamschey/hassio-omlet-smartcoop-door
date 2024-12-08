@@ -1,4 +1,5 @@
 from custom_components.omlet_smart_coop.coop_api import SmartCoopAPI
+from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -18,6 +19,21 @@ class OmletBaseEntity(CoordinatorEntity[CoopCoordinator]):
         self.device = device
         super().__init__(coordinator)
         self._attr_unique_id = f"{device.deviceId}_{key}"
+
+    @property
+    def unique_id(self) -> str | None:
+        """Return a unique ID."""
+        return self._attr_unique_id
+
+    @property
+    def name(self):
+        return self._attr_name
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self.update()
+        self.async_write_ha_state()
 
     @property
     def device_info(self) -> DeviceInfo:

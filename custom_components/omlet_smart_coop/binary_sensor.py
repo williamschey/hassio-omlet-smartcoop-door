@@ -6,7 +6,6 @@ from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
 )
-from homeassistant.core import callback
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
@@ -35,26 +34,9 @@ class CoopPowerConnection(OmletBaseEntity, BinarySensorEntity):
         super().__init__(api, coordinator, device, "battery")
 
     @property
-    def unique_id(self) -> str | None:
-        """Return a unique ID."""
-        return self._attr_unique_id
-
-    @property
-    def name(self):
-        return self._attr_name
-
-    @property
     def is_on(self):
-        """Return True if charger connected."""
-        state = self.api.get_device_state(self.device, "general")
-        self._attr_is_on = getattr(state, "powerSource") == "external"
-        return self._attr_is_on
-    
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
         self.update()
-        self.async_write_ha_state()
+        return self._attr_is_on
     
     def update(self):
         self.device = self.api.get_device(self.device)
