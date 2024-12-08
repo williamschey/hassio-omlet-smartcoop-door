@@ -5,4 +5,9 @@ Add repo to HACS by adding custom repository https://github.com/williamschey/has
 
 You will need to create an API Key from https://smart.omlet.com/developers/
 
+Still need to:
+[ ] Add cofig items
+[ ] Add actions for cofig and polling etc.
+[ ] Anything with groups
+
 Enjoy!

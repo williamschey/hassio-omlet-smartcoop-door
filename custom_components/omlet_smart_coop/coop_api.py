@@ -32,6 +32,11 @@ class SmartCoopAPI:
         """Get a specific state of a device."""
         mydevice = self.get_device(device)
         return getattr(mydevice.state, key)
+
+    def get_device_config(self, device, key):
+        """Get a specific config of a device."""
+        mydevice = self.get_device(device)
+        return getattr(mydevice.configuration, key)
     
     def wrap_perform_action(self, omlet_action):
         try:

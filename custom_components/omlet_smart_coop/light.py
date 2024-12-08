@@ -20,11 +20,8 @@ class CoopLight(OmletBaseEntity, LightEntity):
     """Representation of the coop light."""
 
     def __init__(self, api: SmartCoopAPI, coordinator: CoopCoordinator, device):
-        self.api = api
-        self.device = device
         self._name = f"{device.name} Light"
-        self._attr_unique_id = f"{device.deviceId}_light"
-        super().__init__(coordinator)
+        super().__init__(api, coordinator, device, "light")
 
     @property
     def unique_id(self) -> str | None:

@@ -29,7 +29,7 @@ class CoopCover(OmletBaseEntity, CoverEntity):
 
     def __init__(self, api: SmartCoopAPI, coordinator: CoopCoordinator, device):
         self._name = f"{device.name} Door"
-        super().__init__(self, api, coordinator, device, "cover")
+        super().__init__(api, coordinator, device, "cover")
 
     @property
     def is_closed(self) -> bool:

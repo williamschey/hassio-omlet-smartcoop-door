@@ -32,7 +32,7 @@ class CoopPowerConnection(OmletBaseEntity, BinarySensorEntity):
     
     def __init__(self, api: SmartCoopAPI, coordinator: CoopCoordinator, device):
         self._attr_name = f"{device.name} Power Connection"
-        super().__init__(self, api, coordinator, device, "battery")
+        super().__init__(api, coordinator, device, "battery")
 
     @property
     def unique_id(self) -> str | None:
@@ -44,14 +44,11 @@ class CoopPowerConnection(OmletBaseEntity, BinarySensorEntity):
         return self._attr_name
 
     @property
-    def state(self):
+    def is_on(self):
+        """Return True if charger connected."""
         state = self.api.get_device_state(self.device, "general")
-        self._attr_native_value = getattr(state, "batteryLevel")
-        return self._attr_native_value
-    
-    @property
-    def last_updated(self):
-        return self.api.last_updated()
+        self._attr_is_on = getattr(state, "powerSource") == "external"
+        return self._attr_is_on
     
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -62,4 +59,4 @@ class CoopPowerConnection(OmletBaseEntity, BinarySensorEntity):
     def update(self):
         self.device = self.api.get_device(self.device)
         state = self.api.get_device_state(self.device, "general")
-        self._attr_native_value = getattr(state, "batteryLevel")
+        self._attr_native_value = getattr(state, "powerSource") == "external"
