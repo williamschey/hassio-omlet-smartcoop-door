@@ -6,5 +6,6 @@
   "config_flow": true,
   "codeowners": ["@williamschey"],
   "documentation": "https://github.com/williamschey/hassio-omlet-smartcoop-door/wiki",
-  "issue_tracker": "https://github.com/williamschey/hassio-omlet-smartcoop-door/issues"
+  "issue_tracker": "https://github.com/williamschey/hassio-omlet-smartcoop-door/issues",
+  "iot_class": "cloud_polling"
 }
