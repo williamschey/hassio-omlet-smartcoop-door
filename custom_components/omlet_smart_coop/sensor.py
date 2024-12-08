@@ -1,4 +1,7 @@
 from .const import DOMAIN, API, DEVICES, COORDINATOR
+from .entity import OmletBaseEntity
+from .coop_api import SmartCoopAPI
+from .coordinator import CoopCoordinator
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
@@ -6,11 +9,6 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.const import PERCENTAGE, SIGNAL_STRENGTH_DECIBELS_MILLIWATT
 from homeassistant.core import callback
-from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
-    DataUpdateCoordinator,
-    UpdateFailed,
-)
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Set up Omlet Smart Coop sensors."""
@@ -25,19 +23,16 @@ async def async_setup_entry(hass, entry, async_add_entities):
     async_add_entities(sensors)
 
 
-class CoopBatterySensor(CoordinatorEntity, SensorEntity):
+class CoopBatterySensor(OmletBaseEntity, SensorEntity):
     """Representation of a Smart Coop battery sensor."""
 
     _attr_native_unit_of_measurement = PERCENTAGE
     _attr_device_class = SensorDeviceClass.BATTERY
     _attr_state_class = SensorStateClass.MEASUREMENT
     
-    def __init__(self, api, coordinator, device):
-        self.api = api
-        self.device = device
+    def __init__(self, api: SmartCoopAPI, coordinator: CoopCoordinator, device):
         self._attr_name = f"{device.name} Battery Level"
-        self._attr_unique_id = f"{device.deviceId}_batt"
-        super().__init__(coordinator)
+        super().__init__(self, api, coordinator, device, "battery")
 
     @property
     def unique_id(self) -> str | None:
@@ -69,19 +64,16 @@ class CoopBatterySensor(CoordinatorEntity, SensorEntity):
         state = self.api.get_device_state(self.device, "general")
         self._attr_native_value = getattr(state, "batteryLevel")
 
-class CoopWifiStrength(CoordinatorEntity, SensorEntity):
+class CoopWifiStrength(OmletBaseEntity, SensorEntity):
     """Representation of a Smart Coop wifi sensor."""
 
     _attr_native_unit_of_measurement = SIGNAL_STRENGTH_DECIBELS_MILLIWATT
     _attr_device_class = SensorDeviceClass.SIGNAL_STRENGTH
     _attr_state_class = SensorStateClass.MEASUREMENT
     
-    def __init__(self, api, coordinator, device):
-        self.api = api
-        self.device = device
+    def __init__(self, api: SmartCoopAPI, coordinator: CoopCoordinator, device):
         self._attr_name = f"{device.name} Wi-Fi Strength"
-        self._attr_unique_id = f"{device.deviceId}_wifi"
-        super().__init__(coordinator)
+        super().__init__(self, api, coordinator, device, "wifi")
 
     @property
     def unique_id(self) -> str | None:

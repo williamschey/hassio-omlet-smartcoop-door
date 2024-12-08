@@ -1,15 +1,12 @@
-from custom_components.omlet_smart_coop.coop_api import SmartCoopAPI
+from .coop_api import SmartCoopAPI
+from .coordinator import CoopCoordinator
+from .entity import OmletBaseEntity
 from .const import DOMAIN, API, DEVICES, COORDINATOR
 from homeassistant.core import callback
 from homeassistant.components.cover import (
     CoverDeviceClass,
     CoverEntity,
     CoverEntityFeature,
-)
-from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
-    DataUpdateCoordinator,
-    UpdateFailed,
 )
 
 async def async_setup_entry(hass, entry, async_add_entities):
@@ -22,7 +19,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     async_add_entities(lights)
 
 
-class CoopCover(CoordinatorEntity, CoverEntity):
+class CoopCover(OmletBaseEntity, CoverEntity):
     """Representation of the coop door."""
 
     _attr_device_class = CoverDeviceClass.DOOR
@@ -30,26 +27,9 @@ class CoopCover(CoordinatorEntity, CoverEntity):
         CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE 
     )
 
-    def __init__(self, api: SmartCoopAPI, coordinator, device):
-        super().__init__
-        self.api = api
-        self.device = device
+    def __init__(self, api: SmartCoopAPI, coordinator: CoopCoordinator, device):
         self._name = f"{device.name} Door"
-        self._attr_unique_id = f"{device.deviceId}_cover"
-        super().__init__(coordinator)
-
-    @property
-    def unique_id(self) -> str | None:
-        """Return a unique ID."""
-        return self._attr_unique_id
-    
-    @property
-    def name(self):
-        return self._name
-    
-    @property
-    def last_updated(self):
-        return self.api.last_updated()
+        super().__init__(self, api, coordinator, device, "cover")
 
     @property
     def is_closed(self) -> bool:

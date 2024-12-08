@@ -1,13 +1,10 @@
 from homeassistant.components.light import LightEntity
 
-from custom_components.omlet_smart_coop.coop_api import SmartCoopAPI
+from .coop_api import SmartCoopAPI
+from .coordinator import CoopCoordinator
 from .const import DOMAIN, API, DEVICES, COORDINATOR
+from .entity import OmletBaseEntity
 from homeassistant.core import callback
-from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
-    DataUpdateCoordinator,
-    UpdateFailed,
-)
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Set up Omlet Smart Coop light."""
@@ -19,10 +16,10 @@ async def async_setup_entry(hass, entry, async_add_entities):
     async_add_entities(lights)
 
 
-class CoopLight(CoordinatorEntity, LightEntity):
+class CoopLight(OmletBaseEntity, LightEntity):
     """Representation of the coop light."""
 
-    def __init__(self, api: SmartCoopAPI, coordinator, device):
+    def __init__(self, api: SmartCoopAPI, coordinator: CoopCoordinator, device):
         self.api = api
         self.device = device
         self._name = f"{device.name} Light"
