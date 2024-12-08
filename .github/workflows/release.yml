@@ -1,0 +1,31 @@
+name: "Release"
+
+on:
+  release:
+    types:
+      - "published"
+
+jobs:
+  release:
+    name: "Release"
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: "Checkout the repository"
+        uses: "actions/checkout@v4"
+
+      - name: "Adjust version number"
+        shell: "bash"
+        run: |
+          yq -i -o json '.version="${{ github.event.release.tag_name }}"' \
+            "${{ github.workspace }}/custom_components/omlet_smart_coop/manifest.json"
+
+      - name: "ZIP the integration directory"
+        shell: "bash"
+        run: |
+          cd "${{ github.workspace }}/custom_components/omlet_smart_coop"
+          zip omlet_smart_coop.zip -r ./
+
+      - name: "Upload the ZIP file to the release"
+        uses: softprops/action-gh-release@v2.1.0
+        with:
+          files: ${{ github.workspace }}/custom_components/omlet_smart_coop/omlet_smart_coop.zip
