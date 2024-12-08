@@ -41,4 +41,4 @@ class CoopPowerConnection(OmletBaseEntity, BinarySensorEntity):
     def update(self):
         self.device = self.api.get_device(self.device)
         state = self.api.get_device_state(self.device, "general")
-        self._attr_native_value = getattr(state, "powerSource") == "external"
+        self._attr_is_on = getattr(state, "powerSource") == "external"
