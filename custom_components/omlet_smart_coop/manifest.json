@@ -4,5 +4,7 @@
   "version": "0.8.1",
   "requirements": ["smartcoop-python-sdk==0.1.2"],
   "config_flow": true,
-  "codeowners": ["@williamschey"]
+  "codeowners": ["@williamschey"],
+  "documentation": "https://github.com/williamschey/hassio-omlet-smartcoop-door/wiki",
+  "issue_tracker": "https://github.com/williamschey/hassio-omlet-smartcoop-door/issues"
 }
