@@ -53,5 +53,5 @@ class CoopCover(OmletBaseEntity, CoverEntity):
         if state == "stopping":
             return
         self._attr_is_closed = state == "closed"
-        self._attr_is_closing = state == "closepending"
-        self._attr_is_opening = state == "openpending"
+        self._attr_is_closing = state in ("closing", "closepending")
+        self._attr_is_opening = state in ("opening", "openpending")
