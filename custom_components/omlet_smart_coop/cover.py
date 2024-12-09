@@ -1,20 +1,24 @@
-from .coop_api import SmartCoopAPI
-from .coordinator import CoopCoordinator
-from .entity import OmletBaseEntity
-from .const import DOMAIN, API, DEVICES, COORDINATOR
+"""Support for Omlet Smart Coop Door."""
+
+from smartcoop.api.models import Device
+
 from homeassistant.components.cover import (
     CoverDeviceClass,
     CoverEntity,
     CoverEntityFeature,
 )
+from homeassistant.core import HomeAssistant, callback
 
-async def async_setup_entry(hass, entry, async_add_entities):
+from .const import DOMAIN
+from .coordinator import CoopCoordinator
+from .entity import OmletBaseEntity
+
+
+async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
     """Set up Omlet Smart Coop cover."""
-    api = hass.data[DOMAIN][API]
-    devices = hass.data[DOMAIN][DEVICES]
-    coordinator = hass.data[DOMAIN][COORDINATOR]
+    coordinator = hass.data[DOMAIN][entry.entry_id]
 
-    lights = [CoopCover(api, coordinator, device) for device in devices]
+    lights = [CoopCover(device, coordinator) for device in coordinator.data.values()]
     async_add_entities(lights)
 
 
@@ -23,40 +27,31 @@ class CoopCover(OmletBaseEntity, CoverEntity):
 
     _attr_device_class = CoverDeviceClass.DOOR
     _attr_supported_features: CoverEntityFeature = (
-        CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE 
+        CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE | CoverEntityFeature.STOP
     )
 
-    def __init__(self, api: SmartCoopAPI, coordinator: CoopCoordinator, device):
+    def __init__(self, device, coordinator: CoopCoordinator) -> None:
+        """Initialize the device."""
         self._attr_name = f"{device.name} Door"
-        super().__init__(api, coordinator, device, "cover")
+        super().__init__(device, coordinator, "cover")
 
-    @property
-    def is_closed(self) -> bool:
-        self.update()
-        return self._attr_is_closed
+    async def async_open_cover(self):
+        """Open the door."""
+        await self.coordinator.perform_action(self.device_id, "open")
 
-    @property
-    def is_closing(self) -> bool:
-        self.update()
-        return self._attr_is_closing
+    async def async_close_cover(self):
+        """Close the door."""
+        await self.coordinator.perform_action(self.device_id, "close")
 
-    @property
-    def is_opening(self) -> bool:
-        self.update()
-        return self._attr_is_opening
-    
-    async def async_open_cover(self, **kwargs):
-        await self.api.perform_action(self.device, "open")
-        # Update the data
-        await self.coordinator.async_request_refresh()
+    async def async_stop_cover(self):
+        """Stop the door."""
+        await self.coordinator.perform_action(self.device_id, "stop")
 
-    async def async_close_cover(self, **kwargs):
-        await self.api.perform_action(self.device, "close")
-        # Update the data
-        await self.coordinator.async_request_refresh()
-
-    def update(self):
-        self.device = self.api.get_device(self.device)
-        self._attr_is_closed = self.api.get_device_state(self.device, "door").state == "closed"
-        self._attr_is_closing = self.api.get_device_state(self.device, "door").state == "closing"
-        self._attr_is_opening = self.api.get_device_state(self.device, "door").state == "opening"
+    @callback
+    def _update_attr(self, device: Device) -> None:
+        state = device.state.door.state
+        if state == "stopping":
+            return
+        self._attr_is_closed = state == "closed"
+        self._attr_is_closing = state == "closepending"
+        self._attr_is_opening = state == "openpending"

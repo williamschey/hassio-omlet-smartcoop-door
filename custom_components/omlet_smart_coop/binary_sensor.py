@@ -1,26 +1,25 @@
-from .const import DOMAIN, API, DEVICES, COORDINATOR
-from .entity import OmletBaseEntity
-from .coop_api import SmartCoopAPI
-from .coordinator import CoopCoordinator
+"""Support for Omlet Smart Coop binary sensors."""
+
+from smartcoop.api.models import Device
+
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
 )
-from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
-    DataUpdateCoordinator,
-    UpdateFailed,
-)
+from homeassistant.core import HomeAssistant, callback
 
-async def async_setup_entry(hass, entry, async_add_entities):
+from .const import DOMAIN
+from .coordinator import CoopCoordinator
+from .entity import OmletBaseEntity
+
+
+async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
     """Set up Omlet Smart Coop sensors."""
-    api = hass.data[DOMAIN][API]
-    devices = hass.data[DOMAIN][DEVICES]
-    coordinator = hass.data[DOMAIN][COORDINATOR]
+    coordinator = hass.data[DOMAIN][entry.entry_id]
 
-    sensors = []
-    for device in devices:
-        sensors.append(CoopPowerConnection(api, coordinator, device))
+    sensors = [
+        CoopPowerConnection(device, coordinator) for device in coordinator.data.values()
+    ]
     async_add_entities(sensors)
 
 
@@ -28,17 +27,12 @@ class CoopPowerConnection(OmletBaseEntity, BinarySensorEntity):
     """Representation of a Smart Coop power connection."""
 
     _attr_device_class = BinarySensorDeviceClass.PLUG
-    
-    def __init__(self, api: SmartCoopAPI, coordinator: CoopCoordinator, device):
-        self._attr_name = f"{device.name} Power Connection"
-        super().__init__(api, coordinator, device, "battery")
 
-    @property
-    def is_on(self):
-        self.update()
-        return self._attr_is_on
-    
-    def update(self):
-        self.device = self.api.get_device(self.device)
-        state = self.api.get_device_state(self.device, "general")
-        self._attr_is_on = getattr(state, "powerSource") == "external"
+    def __init__(self, device, coordinator: CoopCoordinator) -> None:
+        """Initialize the device."""
+        self._attr_name = f"{device.name} Power Connection"
+        super().__init__(device, coordinator, "battery")
+
+    @callback
+    def _update_attr(self, device: Device) -> None:
+        self._attr_is_on = device.state.general.powerSource == "external"

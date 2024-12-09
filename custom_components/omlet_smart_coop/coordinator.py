@@ -1,55 +1,41 @@
+"""Define the Omlet Smart Coop data coordinator."""
+
 from datetime import timedelta
 import logging
-import async_timeout
-from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
-    DataUpdateCoordinator,
-    UpdateFailed,
-)
+
+from smartcoop.api.models import Device
+
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+
+from .const import API_KEY
+from .coop_api import SmartCoopAPI
 
 _LOGGER = logging.getLogger(__name__)
 
-class CoopCoordinator(DataUpdateCoordinator):
+
+class CoopCoordinator(DataUpdateCoordinator[dict[str, Device]]):
     """My custom coordinator."""
 
-    def __init__(self, hass, my_api):
+    def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         """Initialize my coordinator."""
+
         super().__init__(
             hass,
             _LOGGER,
-            # Name of the data. For logging purposes.
-            name="My sensor",
-            # Polling interval. Will only be polled if there are subscribers.
-            update_interval=timedelta(seconds=30),
-            # Set always_update to `False` if the data returned from the
-            # api can be compared via `__eq__` to avoid duplicate updates
-            # being dispatched to listeners
-            always_update=True
+            name="omlet_data",
+            update_method=self._async_update_data,
+            update_interval=timedelta(seconds=120),
         )
-        self.my_api = my_api
 
-    async def _async_setup(self):
-        """Set up the coordinator
+        self._api = SmartCoopAPI(entry.data[API_KEY], hass)
 
-        This is the place to set up your coordinator,
-        or to load data, that only needs to be loaded once.
+    async def _async_update_data(self) -> dict[str, Device]:
+        devices = await self._api.get_devices()
+        return {d.deviceId: d for d in devices if d.deviceType == "Autodoor"}
 
-        This method will be called automatically during
-        coordinator.async_config_entry_first_refresh.
-        """
-        self._device = await self.my_api.get_device()
-
-    async def _async_update_data(self):
-        """Fetch data from API endpoint.
-
-        This is the place to pre-process the data to lookup tables
-        so entities can quickly look up their data.
-        """
-        try:
-            # Note: asyncio.TimeoutError and aiohttp.ClientError are already
-            # handled by the data update coordinator.
-            async with async_timeout.timeout(10):
-                # data retrieved from API.
-                return await self.hass.async_add_executor_job(self.my_api.refresh)
-        except Exception as err:
-            raise UpdateFailed(f"Error communicating with API: {err}")
+    async def perform_action(self, device_id, key):
+        """Perform an action on a device."""
+        await self._api.perform_action(self.data[device_id], key)
+        await self.async_request_refresh()

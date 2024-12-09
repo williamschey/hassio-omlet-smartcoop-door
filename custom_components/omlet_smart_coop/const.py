@@ -2,7 +2,7 @@ from homeassistant.const import Platform
 
 DOMAIN = "omlet_smart_coop"
 API_KEY = "api_key"
-API = "api"
-DEVICES = "devices"
-COORDINATOR = "coordinator"
-PLATFORMS = [Platform.LIGHT, Platform.SENSOR, Platform.COVER, Platform.BINARY_SENSOR]
+PLATFORMS = [Platform.BINARY_SENSOR, Platform.COVER, Platform.LIGHT, Platform.SENSOR]
+WEBHOOK_ID_KEY = "webhook_id"
+WEBHOOK_TOKEN = "webhook_token"
+WEBHOOK_EVENT = f"{DOMAIN}_webhook_event"

@@ -1,38 +1,43 @@
+"""Support for Omlet Smart Coop sensors."""
+
 from datetime import datetime, timedelta
-from .const import DOMAIN, API, DEVICES, COORDINATOR
-from .entity import OmletBaseEntity
-from .coop_api import SmartCoopAPI
-from .coordinator import CoopCoordinator
+
+from smartcoop.api.models import Device
+
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
     SensorStateClass,
 )
-from homeassistant.helpers.entity import EntityCategory
 from homeassistant.const import (
+    LIGHT_LUX,
     PERCENTAGE,
     SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
-    LIGHT_LUX,
     UnitOfTime,
-) 
-from homeassistant.util import dt
+)
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.entity import EntityCategory
+from homeassistant.util import dt as dt_util
 
-async def async_setup_entry(hass, entry, async_add_entities):
+from .const import DOMAIN
+from .coordinator import CoopCoordinator
+from .entity import OmletBaseEntity
+
+
+async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
     """Set up Omlet Smart Coop sensors."""
-    api = hass.data[DOMAIN][API]
-    devices = hass.data[DOMAIN][DEVICES]
-    coordinator = hass.data[DOMAIN][COORDINATOR]
+    coordinator = hass.data[DOMAIN][entry.entry_id]
 
     sensors = []
-    for device in devices:
-        sensors.append(CoopBatterySensor(api, coordinator, device))
-        sensors.append(CoopWifiStrength(api, coordinator, device))
-        sensors.append(CoopUpdateTime(api, coordinator, device))
-        sensors.append(CoopPollingInterval(api, coordinator, device))
-        sensors.append(CoopLightLevel(api, coordinator, device))
-        sensors.append(CoopOpenTime(api, coordinator, device))
-        sensors.append(CoopCloseTime(api, coordinator, device))
-        sensors.append(CoopNextUpdateTime(api, coordinator, device))
+    for device in coordinator.data.values():
+        sensors.append(CoopBatterySensor(device, coordinator))
+        sensors.append(CoopWifiStrength(device, coordinator))
+        sensors.append(CoopUpdateTime(device, coordinator))
+        sensors.append(CoopPollingInterval(device, coordinator))
+        sensors.append(CoopLightLevel(device, coordinator))
+        sensors.append(CoopOpenTime(device, coordinator))
+        sensors.append(CoopCloseTime(device, coordinator))
+        sensors.append(CoopNextUpdateTime(device, coordinator))
     async_add_entities(sensors)
 
 
@@ -42,20 +47,16 @@ class CoopBatterySensor(OmletBaseEntity, SensorEntity):
     _attr_native_unit_of_measurement = PERCENTAGE
     _attr_device_class = SensorDeviceClass.BATTERY
     _attr_state_class = SensorStateClass.MEASUREMENT
-    
-    def __init__(self, api: SmartCoopAPI, coordinator: CoopCoordinator, device):
-        self._attr_name = f"{device.name} Battery Level"
-        super().__init__(api, coordinator, device, "battery")
 
-    @property
-    def state(self):
-        self.update()
-        return self._attr_native_value
-            
-    def update(self):
-        self.device = self.api.get_device(self.device)
-        state = self.api.get_device_state(self.device, "general")
-        self._attr_native_value = getattr(state, "batteryLevel")
+    def __init__(self, device, coordinator: CoopCoordinator) -> None:
+        """Initialize the device."""
+        self._attr_name = f"{device.name} Battery Level"
+        super().__init__(device, coordinator, "battery")
+
+    @callback
+    def _update_attr(self, device: Device) -> None:
+        self._attr_native_value = device.state.general.batteryLevel
+
 
 class CoopWifiStrength(OmletBaseEntity, SensorEntity):
     """Representation of a Smart Coop wifi sensor."""
@@ -63,20 +64,16 @@ class CoopWifiStrength(OmletBaseEntity, SensorEntity):
     _attr_native_unit_of_measurement = SIGNAL_STRENGTH_DECIBELS_MILLIWATT
     _attr_device_class = SensorDeviceClass.SIGNAL_STRENGTH
     _attr_state_class = SensorStateClass.MEASUREMENT
-    
-    def __init__(self, api: SmartCoopAPI, coordinator: CoopCoordinator, device):
-        self._attr_name = f"{device.name} Wi-Fi Strength"
-        super().__init__(api, coordinator, device, "wifi")
 
-    @property
-    def state(self):
-        self.update()
-        return self._attr_native_value
-            
-    def update(self):
-        self.device = self.api.get_device(self.device)
-        state = self.api.get_device_state(self.device, "connectivity")
-        self._attr_native_value = getattr(state, "wifiStrength")
+    def __init__(self, device, coordinator: CoopCoordinator) -> None:
+        """Initialize the device."""
+        self._attr_name = f"{device.name} Wi-Fi Strength"
+        super().__init__(device, coordinator, "wifi")
+
+    @callback
+    def _update_attr(self, device: Device) -> None:
+        self._attr_native_value = device.state.connectivity.wifiStrength
+
 
 class CoopUpdateTime(OmletBaseEntity, SensorEntity):
     """Representation of a Smart Coop last update time."""
@@ -84,23 +81,19 @@ class CoopUpdateTime(OmletBaseEntity, SensorEntity):
     _attr_device_class = SensorDeviceClass.TIMESTAMP
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_icon = "mdi:timer"
-    
-    def __init__(self, api: SmartCoopAPI, coordinator: CoopCoordinator, device):
-        self._attr_name = f"{device.name} Last Updated"
-        super().__init__(api, coordinator, device, "last_updated")
 
-    @property
-    def native_value(self) -> datetime:
-        self.update()
-        return self._attr_native_value
-            
-    def update(self):
-        self.device = self.api.get_device(self.device)
-        state = self.api.get_device_config(self.device, "general")
-        last_time = getattr(state, "datetime")
+    def __init__(self, device, coordinator: CoopCoordinator) -> None:
+        """Initialize the device."""
+        self._attr_name = f"{device.name} Last Updated"
+        super().__init__(device, coordinator, "last_updated")
+
+    @callback
+    def _update_attr(self, device: Device) -> None:
+        last_time = device.configuration.general.datetime
         if isinstance(last_time, str):
-            strippedTime = datetime.strptime(last_time[:-6], '%Y-%m-%dT%H:%M:%S')
-            self._attr_native_value = dt.as_local(strippedTime)
+            strippedTime = datetime.strptime(last_time[:-6], "%Y-%m-%dT%H:%M:%S")
+            self._attr_native_value = dt_util.as_local(strippedTime)
+
 
 class CoopPollingInterval(OmletBaseEntity, SensorEntity):
     """Representation of a Smart Coop last update time."""
@@ -110,20 +103,16 @@ class CoopPollingInterval(OmletBaseEntity, SensorEntity):
     _attr_native_unit_of_measurement = UnitOfTime.SECONDS
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_icon = "mdi:timer-sync"
-    
-    def __init__(self, api: SmartCoopAPI, coordinator: CoopCoordinator, device):
-        self._attr_name = f"{device.name} Polling Interval"
-        super().__init__(api, coordinator, device, "polling_interval")
 
-    @property
-    def native_value(self) -> int:
-        self.update()
-        return self._attr_native_value
-            
-    def update(self):
-        self.device = self.api.get_device(self.device)
-        state = self.api.get_device_config(self.device, "general")
-        self._attr_native_value = getattr(state, "pollFreq")
+    def __init__(self, device, coordinator: CoopCoordinator) -> None:
+        """Initialize the device."""
+        self._attr_name = f"{device.name} Polling Interval"
+        super().__init__(device, coordinator, "polling_interval")
+
+    @callback
+    def _update_attr(self, device: Device) -> None:
+        self._attr_native_value = device.configuration.general.pollFreq
+
 
 class CoopNextUpdateTime(OmletBaseEntity, SensorEntity):
     """Representation of a Smart Coop next update time."""
@@ -131,24 +120,22 @@ class CoopNextUpdateTime(OmletBaseEntity, SensorEntity):
     _attr_device_class = SensorDeviceClass.TIMESTAMP
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_icon = "mdi:timer"
-    
-    def __init__(self, api: SmartCoopAPI, coordinator: CoopCoordinator, device):
-        self._attr_name = f"{device.name} Next Update"
-        super().__init__(api, coordinator, device, "next_update")
 
-    @property
-    def native_value(self) -> datetime:
-        self.update()
-        return self._attr_native_value
-        
-    def update(self):
-        self.device = self.api.get_device(self.device)
-        state = self.api.get_device_config(self.device, "general")
-        last_time = getattr(state, "datetime")
-        poll_freq = getattr(state, "pollFreq")
+    def __init__(self, device, coordinator: CoopCoordinator) -> None:
+        """Initialize the device."""
+        self._attr_name = f"{device.name} Next Update"
+        super().__init__(device, coordinator, "next_update")
+
+    @callback
+    def _update_attr(self, device: Device) -> None:
+        last_time = device.configuration.general.datetime
+        poll_freq = device.configuration.general.pollFreq
         if isinstance(last_time, str):
-            strippedTime = datetime.strptime(last_time[:-6], '%Y-%m-%dT%H:%M:%S') + timedelta(seconds=poll_freq)
-            self._attr_native_value = dt.as_local(strippedTime)
+            strippedTime = datetime.strptime(
+                last_time[:-6], "%Y-%m-%dT%H:%M:%S"
+            ) + timedelta(seconds=poll_freq)
+            self._attr_native_value = dt_util.as_local(strippedTime)
+
 
 class CoopLightLevel(OmletBaseEntity, SensorEntity):
     """Representation of a Smart Coop last update time."""
@@ -156,20 +143,15 @@ class CoopLightLevel(OmletBaseEntity, SensorEntity):
     _attr_device_class = SensorDeviceClass.ILLUMINANCE
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = LIGHT_LUX
-    
-    def __init__(self, api: SmartCoopAPI, coordinator: CoopCoordinator, device):
-        self._attr_name = f"{device.name} Light Level"
-        super().__init__(api, coordinator, device, "light_level")
 
-    @property
-    def native_value(self) -> int:
-        self.update()
-        return self._attr_native_value
-            
-    def update(self):
-        self.device = self.api.get_device(self.device)
-        state = self.api.get_device_state(self.device, "door")
-        self._attr_native_value = getattr(state, "lightLevel")
+    def __init__(self, device, coordinator: CoopCoordinator) -> None:
+        """Initialize the device."""
+        self._attr_name = f"{device.name} Light Level"
+        super().__init__(device, coordinator, "light_level")
+
+    @callback
+    def _update_attr(self, device: Device) -> None:
+        self._attr_native_value = device.state.door.lightLevel
 
 
 class CoopOpenTime(OmletBaseEntity, SensorEntity):
@@ -178,23 +160,19 @@ class CoopOpenTime(OmletBaseEntity, SensorEntity):
     _attr_device_class = SensorDeviceClass.TIMESTAMP
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_icon = "mdi:timer"
-    
-    def __init__(self, api: SmartCoopAPI, coordinator: CoopCoordinator, device):
-        self._attr_name = f"{device.name} Last Open Time"
-        super().__init__(api, coordinator, device, "last_open_time")
 
-    @property
-    def native_value(self) -> datetime:
-        self.update()
-        return self._attr_native_value
-            
-    def update(self):
-        self.device = self.api.get_device(self.device)
-        state = self.api.get_device_state(self.device, "door")
-        last_time = getattr(state, "lastOpenTime")
+    def __init__(self, device, coordinator: CoopCoordinator) -> None:
+        """Initialize the device."""
+        self._attr_name = f"{device.name} Last Open Time"
+        super().__init__(device, coordinator, "last_open_time")
+
+    @callback
+    def _update_attr(self, device: Device) -> None:
+        last_time = device.state.door.lastOpenTime
         if isinstance(last_time, str):
-            strippedTime = datetime.strptime(last_time[:-6], '%Y-%m-%dT%H:%M:%S')
-            self._attr_native_value = dt.as_local(strippedTime)
+            strippedTime = datetime.strptime(last_time[:-6], "%Y-%m-%dT%H:%M:%S")
+            self._attr_native_value = dt_util.as_local(strippedTime)
+
 
 class CoopCloseTime(OmletBaseEntity, SensorEntity):
     """Representation of a Smart Coop last close time."""
@@ -202,20 +180,16 @@ class CoopCloseTime(OmletBaseEntity, SensorEntity):
     _attr_device_class = SensorDeviceClass.TIMESTAMP
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_icon = "mdi:timer"
-    
-    def __init__(self, api: SmartCoopAPI, coordinator: CoopCoordinator, device):
-        self._attr_name = f"{device.name} Last Close Time"
-        super().__init__(api, coordinator, device, "last_close_time")
 
-    @property
-    def native_value(self) -> datetime:
-        self.update()
-        return self._attr_native_value
-            
-    def update(self):
-        self.device = self.api.get_device(self.device)
-        state = self.api.get_device_state(self.device, "door")
-        last_time = getattr(state, "lastCloseTime")
+    def __init__(self, device, coordinator: CoopCoordinator) -> None:
+        """Initialize the device."""
+        self._attr_name = f"{device.name} Last Close Time"
+        super().__init__(device, coordinator, "last_close_time")
+
+    @callback
+    def _update_attr(self, device: Device) -> None:
+        # self.device = device
+        last_time = device.state.door.lastCloseTime
         if isinstance(last_time, str):
-            strippedTime = datetime.strptime(last_time[:-6], '%Y-%m-%dT%H:%M:%S')
-            self._attr_native_value = dt.as_local(strippedTime)
+            strippedTime = datetime.strptime(last_time[:-6], "%Y-%m-%dT%H:%M:%S")
+            self._attr_native_value = dt_util.as_local(strippedTime)

@@ -1,47 +1,40 @@
-from homeassistant.components.light import LightEntity
+"""Support for Omlet Smart Coop light."""
 
-from .coop_api import SmartCoopAPI
+from smartcoop.api.models import Device
+
+from homeassistant.components.light import ColorMode, LightEntity
+from homeassistant.core import HomeAssistant, callback
+
+from .const import DOMAIN
 from .coordinator import CoopCoordinator
-from .const import DOMAIN, API, DEVICES, COORDINATOR
 from .entity import OmletBaseEntity
 
-async def async_setup_entry(hass, entry, async_add_entities):
-    """Set up Omlet Smart Coop light."""
-    api = hass.data[DOMAIN][API]
-    devices = hass.data[DOMAIN][DEVICES]
-    coordinator = hass.data[DOMAIN][COORDINATOR]
 
-    lights = [CoopLight(api, coordinator, device) for device in devices]
+async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
+    """Set up Omlet Smart Coop light."""
+    coordinator = hass.data[DOMAIN][entry.entry_id]
+
+    lights = [CoopLight(device, coordinator) for device in coordinator.data.values()]
     async_add_entities(lights)
 
 
 class CoopLight(OmletBaseEntity, LightEntity):
     """Representation of the coop light."""
 
-    def __init__(self, api: SmartCoopAPI, coordinator: CoopCoordinator, device):
+    def __init__(self, device, coordinator: CoopCoordinator) -> None:
+        """Initialize the device."""
         self._attr_name = f"{device.name} Light"
-        self._attr_color_mode = None
-        super().__init__(api, coordinator, device, "light")
+        self._attr_color_mode = ColorMode.ONOFF
+        super().__init__(device, coordinator, "light")
 
-    @property
-    def color_mode(self):
-        return self._attr_color_mode
-    
-    @property
-    def is_on(self):
-        self.update()
-        return self._attr_is_on
-    
-    async def async_turn_on(self, **kwargs):
-        self.api.perform_action(self.device, "on")
-        # Update the data
-        await self.coordinator.async_request_refresh()
+    async def async_turn_on(self):
+        """Turn on the light."""
+        await self.coordinator.perform_action(self.device_id, "on")
 
-    async def async_turn_off(self, **kwargs):
-        self.api.perform_action(self.device, "off")
-        # Update the data
-        await self.coordinator.async_request_refresh()
+    async def async_turn_off(self):
+        """Turn off the light."""
+        await self.coordinator.perform_action(self.device_id, "off")
 
-    def update(self):
-        self.device = self.api.get_device(self.device)
-        self._attr_is_on = self.api.get_device_state(self.device, "light").state == 'on'
+    @callback
+    def _update_attr(self, device: Device) -> None:
+        self._attr_is_on = device.state.light.state in ("on", "onpending")

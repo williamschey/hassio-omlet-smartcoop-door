@@ -1,10 +1,15 @@
-import voluptuous as vol
-from homeassistant import config_entries
-from custom_components.omlet_smart_coop.coop_api import SmartCoopAPI
-from .const import DOMAIN, API_KEY
-from smartcoop.client import SmartCoopClient
-from smartcoop.api.omlet import Omlet
+"""Config flow for Omlet Smart Coop integration."""
+
 from urllib.error import HTTPError
+
+from smartcoop.api.omlet import Omlet
+from smartcoop.client import SmartCoopClient
+import voluptuous as vol
+
+from homeassistant import config_entries
+
+from .const import API_KEY, DOMAIN
+
 
 class OmletSmartCoopConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Omlet Smart Coop."""
@@ -18,8 +23,10 @@ class OmletSmartCoopConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             try:
                 client = SmartCoopClient(client_secret=api_key)
                 api = Omlet(client)
-                result = await self.hass.async_add_executor_job(api.get_devices)               
-                return self.async_create_entry(title="Omlet Smart Coop", data=user_input)
+                await self.hass.async_add_executor_job(api.get_devices)
+                return self.async_create_entry(
+                    title="Omlet Smart Coop", data=user_input
+                )
             except HTTPError:
                 errors["base"] = "invalid_api_key"
 

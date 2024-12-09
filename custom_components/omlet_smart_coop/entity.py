@@ -1,10 +1,14 @@
-from custom_components.omlet_smart_coop.coop_api import SmartCoopAPI
+"""Base entity for Omlet Smart Coop integration."""
+
+from abc import abstractmethod
+
+from smartcoop.api.models import Device
+
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
-
 from .coordinator import CoopCoordinator
 
 
@@ -13,53 +17,41 @@ class OmletBaseEntity(CoordinatorEntity[CoopCoordinator]):
 
     _attr_has_entity_name = True
 
-    def __init__(self, api: SmartCoopAPI, coordinator, device, key):
+    def __init__(self, device, coordinator, key) -> None:
         """Initialize the device."""
-        self.api = api
-        self.device = device
         super().__init__(coordinator)
         self._attr_unique_id = f"{device.deviceId}_{key}"
+        self._update_attr(coordinator.data[device.deviceId])
 
-    @property
-    def unique_id(self) -> str | None:
-        """Return a unique ID."""
-        return self._attr_unique_id
+        self.device_id = device.deviceId
 
-    @property
-    def name(self):
-        return self._attr_name
+        self._attr_device_info = self._device_info(device)
+
+    @staticmethod
+    def _device_info(device) -> DeviceInfo:
+        """Return device info."""
+        swversion = None
+        if hasattr(device.state.general, "firmwareVersionCurrent"):
+            swversion = device.state.general.firmwareVersionCurrent
+
+        return DeviceInfo(
+            identifiers={(DOMAIN, device.name)},
+            manufacturer="Omlet",
+            serial_number=device.deviceId,
+            model_id=device.deviceType,
+            name=device.name,
+            sw_version=swversion,
+            model=device.deviceType,
+            suggested_area="Garden",
+        )
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        self.update()
+        self._update_attr(self.coordinator.data[self.device_id])
         self.async_write_ha_state()
 
-    @property
-    def device_info(self) -> DeviceInfo:
-        swversion = None
-        if hasattr(self.device.state.general, "firmwareVersionCurrent"):
-            swversion = self.device.state.general.firmwareVersionCurrent
-
-        device_name = self.device.name
-        device_id = self.device.deviceId
-
-        device_type = self.device.deviceType
-
-        return DeviceInfo(
-            identifiers={(DOMAIN, device_name)},
-            manufacturer="Omlet",
-            serial_number=device_id,
-            model_id=device_type,
-            name=device_name,
-            sw_version=swversion,
-            model=device_type,
-            suggested_area="Garden",
-        )
-
-    @property
-    def available(self) -> bool:
-        """Return True if entity is available."""
-        return (
-            self.device is not None
-        )
+    @abstractmethod
+    @callback
+    def _update_attr(self, device: Device) -> None:
+        """Update the state and attributes."""
