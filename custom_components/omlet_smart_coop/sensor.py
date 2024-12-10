@@ -1,6 +1,6 @@
 """Support for Omlet Smart Coop sensors."""
 
-from datetime import datetime, timedelta
+from datetime import datetime, date, timedelta
 
 from smartcoop.api.models import Device
 
@@ -128,13 +128,29 @@ class CoopNextUpdateTime(OmletBaseEntity, SensorEntity):
 
     @callback
     def _update_attr(self, device: Device) -> None:
-        last_time = device.configuration.general.datetime
-        poll_freq = device.configuration.general.pollFreq
-        if isinstance(last_time, str):
-            strippedTime = datetime.strptime(
-                last_time[:-6], "%Y-%m-%dT%H:%M:%S"
-            ) + timedelta(seconds=poll_freq)
+        strippedTime = datetime.strptime(
+            device.configuration.general.datetime[:-6], "%Y-%m-%dT%H:%M:%S"
+        ) + timedelta(seconds=device.configuration.general.pollFreq)   
+        if not device.configuration.general.overnightSleepEnable: 
             self._attr_native_value = dt_util.as_local(strippedTime)
+            return
+    
+        sleep_start = datetime.combine(date.today(), datetime.strptime(
+            device.configuration.general.overnightSleepStart, "%H:%M"
+        ).time())
+        sleep_end = datetime.combine(date.today(), datetime.strptime(
+            device.configuration.general.overnightSleepEnd, "%H:%M"
+        ).time())
+
+        if (sleep_end < sleep_start):
+            sleep_end = sleep_end + timedelta(days=1)
+        
+        if sleep_start < datetime.now() < sleep_end:
+            self._attr_native_value = dt_util.as_local(sleep_end)
+            return
+        
+        self._attr_native_value = dt_util.as_local(strippedTime)
+        return
 
 
 class CoopLightLevel(OmletBaseEntity, SensorEntity):
