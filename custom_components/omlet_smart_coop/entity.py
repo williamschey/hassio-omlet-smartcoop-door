@@ -15,17 +15,13 @@ from .coordinator import CoopCoordinator
 class OmletBaseEntity(CoordinatorEntity[CoopCoordinator]):
     """Representation of a Omlet Autodoor."""
 
-    _attr_has_entity_name = True
-
     def __init__(self, device, coordinator, key) -> None:
         """Initialize the device."""
         super().__init__(coordinator)
-        self._attr_unique_id = f"{device.deviceId}_{key}"
-        self._update_attr(coordinator.data[device.deviceId])
-
         self.device_id = device.deviceId
-
+        self._attr_unique_id = f"{device.deviceId}_{key}"
         self._attr_device_info = self._device_info(device)
+        self._update_attr(coordinator.data[device.deviceId])
 
     @staticmethod
     def _device_info(device) -> DeviceInfo:
