@@ -36,3 +36,10 @@ class SmartCoopAPI:
         return await self.hass.async_add_executor_job(
             self._wrap_perform_action, omlet_action
         )
+
+    async def patch_config(self, device):
+        """Patch the configuration of a device."""
+
+        return await self.hass.async_add_executor_job(
+            self.omlet.update_configuration, device.deviceId, device.configuration
+        )

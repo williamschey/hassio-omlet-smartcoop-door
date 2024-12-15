@@ -21,10 +21,12 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
 class CoopLight(OmletBaseEntity, LightEntity):
     """Representation of the coop light."""
 
+    _attr_color_mode = ColorMode.ONOFF
+    _attr_supported_color_modes = {ColorMode.ONOFF}
+
     def __init__(self, device, coordinator: CoopCoordinator) -> None:
         """Initialize the device."""
         self._attr_name = f"{device.name} Light"
-        self._attr_color_mode = ColorMode.ONOFF
         super().__init__(device, coordinator, "light")
 
     async def async_turn_on(self):

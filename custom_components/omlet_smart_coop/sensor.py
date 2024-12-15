@@ -1,6 +1,6 @@
 """Support for Omlet Smart Coop sensors."""
 
-from datetime import datetime, date, timedelta
+from datetime import date, datetime, timedelta
 
 from smartcoop.api.models import Device
 
@@ -38,6 +38,7 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
         sensors.append(CoopOpenTime(device, coordinator))
         sensors.append(CoopCloseTime(device, coordinator))
         sensors.append(CoopNextUpdateTime(device, coordinator))
+        sensors.append(CoopDoorFault(device, coordinator))
     async_add_entities(sensors)
 
 
@@ -130,25 +131,31 @@ class CoopNextUpdateTime(OmletBaseEntity, SensorEntity):
     def _update_attr(self, device: Device) -> None:
         strippedTime = datetime.strptime(
             device.configuration.general.datetime[:-6], "%Y-%m-%dT%H:%M:%S"
-        ) + timedelta(seconds=device.configuration.general.pollFreq)   
-        if not device.configuration.general.overnightSleepEnable: 
+        ) + timedelta(seconds=device.configuration.general.pollFreq)
+        if not device.configuration.general.overnightSleepEnable:
             self._attr_native_value = dt_util.as_local(strippedTime)
             return
-    
-        sleep_start = datetime.combine(date.today(), datetime.strptime(
-            device.configuration.general.overnightSleepStart, "%H:%M"
-        ).time())
-        sleep_end = datetime.combine(date.today(), datetime.strptime(
-            device.configuration.general.overnightSleepEnd, "%H:%M"
-        ).time())
 
-        if (sleep_end < sleep_start):
+        sleep_start = datetime.combine(
+            date.today(),
+            datetime.strptime(
+                device.configuration.general.overnightSleepStart, "%H:%M"
+            ).time(),
+        )
+        sleep_end = datetime.combine(
+            date.today(),
+            datetime.strptime(
+                device.configuration.general.overnightSleepEnd, "%H:%M"
+            ).time(),
+        )
+
+        if sleep_end < sleep_start:
             sleep_end = sleep_end + timedelta(days=1)
-        
+
         if sleep_start < datetime.now() < sleep_end:
             self._attr_native_value = dt_util.as_local(sleep_end)
             return
-        
+
         self._attr_native_value = dt_util.as_local(strippedTime)
         return
 
@@ -209,3 +216,16 @@ class CoopCloseTime(OmletBaseEntity, SensorEntity):
         if isinstance(last_time, str):
             strippedTime = datetime.strptime(last_time[:-6], "%Y-%m-%dT%H:%M:%S")
             self._attr_native_value = dt_util.as_local(strippedTime)
+
+
+class CoopDoorFault(OmletBaseEntity, SensorEntity):
+    """Representation of a Smart Coop door fault state."""
+
+    def __init__(self, device, coordinator: CoopCoordinator) -> None:
+        """Initialize the device."""
+        self._attr_name = f"{device.name} Door Fault"
+        super().__init__(device, coordinator, "door_fault")
+
+    @callback
+    def _update_attr(self, device: Device) -> None:
+        self._attr_native_value = device.state.door.fault
