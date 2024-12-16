@@ -63,7 +63,7 @@ class CoopOpenLightLevelInput(CoopLightLevelInput):
         self._attr_native_value = device.configuration.door.openLightLevel
 
     def _patch_config(self, device: Device, lightLevel: int):
-        if lightLevel <= device.configuration.door.openLightLevel:
+        if lightLevel <= device.configuration.door.closeLightLevel:
             raise ValueError("Close light level must be less than open light level")
 
         device.configuration.door.openLightLevel = lightLevel
