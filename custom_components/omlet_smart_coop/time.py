@@ -5,7 +5,7 @@ from abc import abstractmethod
 from smartcoop.api.models import Device
 
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.entity import Entity, EntityCategory
 
 from .const import DOMAIN
 from .entity import OmletBaseEntity
@@ -48,6 +48,7 @@ class CoopTimeInput(OmletBaseEntity, Entity):
 
 class CoopOpenTimeInput(CoopTimeInput):
     """Representation of a Smart Coop Open time input entity."""
+    _attr_entity_category = EntityCategory.CONFIG
 
     def __init__(self, device: Device, coordinator) -> None:
         """Initialize the device."""
@@ -64,6 +65,7 @@ class CoopOpenTimeInput(CoopTimeInput):
 
 class CoopCloseTimeInput(CoopTimeInput):
     """Representation of a Smart Coop Close time input entity."""
+    _attr_entity_category = EntityCategory.CONFIG
 
     def __init__(self, device, coordinator) -> None:
         """Initialize the device."""

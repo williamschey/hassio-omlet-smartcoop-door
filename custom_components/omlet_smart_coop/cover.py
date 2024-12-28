@@ -2,6 +2,8 @@
 
 from smartcoop.api.models import Device
 
+from typing import Any
+
 from homeassistant.components.cover import (
     CoverDeviceClass,
     CoverEntity,
@@ -49,9 +51,14 @@ class CoopCover(OmletBaseEntity, CoverEntity):
 
     @callback
     def _update_attr(self, device: Device) -> None:
-        state = device.state.door.state
-        if state == "stopping":
+        self.raw_state = device.state.door.state
+        if self.raw_state == "stopping":
             return
-        self._attr_is_closed = state == "closed"
-        self._attr_is_closing = state in ("closing", "closepending")
-        self._attr_is_opening = state in ("opening", "openpending")
+        self._attr_is_closed = self.raw_state == "closed"
+        self._attr_is_closing = self.raw_state in ("closing", "closepending")
+        self._attr_is_opening = self.raw_state in ("opening", "openpending")
+
+    
+    @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        return {"raw_state": self.raw_state}

@@ -4,6 +4,7 @@ from smartcoop.api.models import Device
 
 from homeassistant.components.select import SelectEntity
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.entity import EntityCategory
 
 from .const import DOMAIN, DOOR_MODES
 from .coordinator import CoopCoordinator
@@ -24,6 +25,7 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
 
 class CoopOpenMode(OmletBaseEntity, SelectEntity):
     """Representation of a Smart Coop open mode select entity."""
+    _attr_entity_category = EntityCategory.CONFIG
 
     _attr_options = [e.value for e in DOOR_MODES]
 
@@ -52,6 +54,7 @@ class CoopOpenMode(OmletBaseEntity, SelectEntity):
 
 class CoopCloseMode(OmletBaseEntity, SelectEntity):
     """Representation of a Smart Coop close mode select."""
+    _attr_entity_category = EntityCategory.CONFIG
 
     _attr_options = [e.value for e in DOOR_MODES]
 

@@ -5,8 +5,10 @@ from abc import abstractmethod
 from smartcoop.api.models import Device
 
 from homeassistant.components.number import NumberEntity
+from homeassistant.components.number.const import NumberMode
 from homeassistant.const import LIGHT_LUX
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.entity import EntityCategory
 
 from .const import DOMAIN
 from .coordinator import CoopCoordinator
@@ -52,6 +54,8 @@ class CoopLightLevelInput(OmletBaseEntity, NumberEntity):
 
 class CoopOpenLightLevelInput(CoopLightLevelInput):
     """Representation of a Smart Coop time input entity."""
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_mode = NumberMode.BOX
 
     def __init__(self, device, coordinator: CoopCoordinator) -> None:
         """Initialize the device."""
@@ -71,6 +75,8 @@ class CoopOpenLightLevelInput(CoopLightLevelInput):
 
 class CoopCloseLightLevelInput(CoopLightLevelInput):
     """Representation of a Smart Coop time input entity."""
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_mode = NumberMode.BOX
 
     def __init__(self, device, coordinator: CoopCoordinator) -> None:
         """Initialize the device."""
