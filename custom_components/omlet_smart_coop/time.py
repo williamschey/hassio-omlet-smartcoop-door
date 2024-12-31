@@ -20,6 +20,8 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
     for device in coordinator.data.values():
         timeInputs.append(CoopOpenTimeInput(device, coordinator))
         timeInputs.append(CoopCloseTimeInput(device, coordinator))
+        timeInputs.append(CoopOvernightSleepStartInput(device, coordinator))
+        timeInputs.append(CoopOvernightSleepEndInput(device, coordinator))
     async_add_entities(timeInputs)
 
 
@@ -79,3 +81,35 @@ class CoopCloseTimeInput(CoopTimeInput):
 
     def _patch_config(self, device: Device, strTime):
         device.configuration.door.closeTime = strTime
+
+
+class CoopOvernightSleepStartInput(CoopTimeInput):
+    _attr_entity_category = EntityCategory.CONFIG
+
+    def __init__(self, device: Device, coordinator) -> None:
+        """Initialize the device."""
+        self._attr_name = f"{device.name} Overnight Sleep Start Time"
+        super().__init__(device, coordinator, "overnight_sleep_start_time")
+
+    @callback
+    def _update_attr(self, device: Device):
+        self._attr_state = device.configuration.general.overnightSleepStart
+
+    def _patch_config(self, device: Device, strTime):
+        device.configuration.general.overnightSleepStart = strTime
+
+
+class CoopOvernightSleepEndInput(CoopTimeInput):
+    _attr_entity_category = EntityCategory.CONFIG
+
+    def __init__(self, device: Device, coordinator) -> None:
+        """Initialize the device."""
+        self._attr_name = f"{device.name} Overnight Sleep End Time"
+        super().__init__(device, coordinator, "overnight_sleep_end_time")
+
+    @callback
+    def _update_attr(self, device: Device):
+        self._attr_state = device.configuration.general.overnightSleepEnd
+
+    def _patch_config(self, device: Device, strTime):
+        device.configuration.general.overnightSleepEnd = strTime

@@ -22,6 +22,7 @@ PLATFORMS = [
     Platform.NUMBER,
     Platform.SELECT,
     Platform.SENSOR,
+    Platform.SWITCH,
     Platform.TIME,
 ]
 WEBHOOK_ID_KEY = "webhook_id"
