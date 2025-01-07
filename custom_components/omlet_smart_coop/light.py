@@ -2,6 +2,8 @@
 
 from smartcoop.api.models import Device
 
+from typing import Any
+
 from homeassistant.components.light import ColorMode, LightEntity
 from homeassistant.core import HomeAssistant, callback
 
@@ -31,12 +33,21 @@ class CoopLight(OmletBaseEntity, LightEntity):
 
     async def async_turn_on(self):
         """Turn on the light."""
+        self._attr_is_on = True
+        self.async_write_ha_state()
         await self.coordinator.perform_action(self.device_id, "on")
 
     async def async_turn_off(self):
         """Turn off the light."""
+        self._attr_is_on = False
+        self.async_write_ha_state()
         await self.coordinator.perform_action(self.device_id, "off")
 
     @callback
     def _update_attr(self, device: Device) -> None:
-        self._attr_is_on = device.state.light.state in ("on", "onpending")
+        self.raw_state = device.state.light.state
+        self._attr_is_on = self.raw_state in ("on", "onpending")
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        return {"raw_state": self.raw_state}

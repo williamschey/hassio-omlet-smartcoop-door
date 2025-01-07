@@ -39,14 +39,24 @@ class CoopCover(OmletBaseEntity, CoverEntity):
 
     async def async_open_cover(self):
         """Open the door."""
+        self._attr_is_opening = True 
+        self._attr_is_closing = False       
+        self.async_write_ha_state()
         await self.coordinator.perform_action(self.device_id, "open")
 
     async def async_close_cover(self):
         """Close the door."""
+        self._attr_is_opening = False 
+        self._attr_is_closing = True  
+        self.async_write_ha_state()
         await self.coordinator.perform_action(self.device_id, "close")
+
 
     async def async_stop_cover(self):
         """Stop the door."""
+        self._attr_is_opening = False 
+        self._attr_is_closing = False  
+        self.async_write_ha_state()
         await self.coordinator.perform_action(self.device_id, "stop")
 
     @callback

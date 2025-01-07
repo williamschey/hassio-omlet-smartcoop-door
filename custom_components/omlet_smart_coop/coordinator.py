@@ -27,7 +27,7 @@ class CoopCoordinator(DataUpdateCoordinator[dict[str, Device]]):
             _LOGGER,
             name="omlet_data",
             update_method=self._async_update_data,
-            update_interval=timedelta(seconds=120),
+            update_interval=timedelta(seconds=60),
         )
 
         self._api = SmartCoopAPI(entry.data[API_KEY], hass)
@@ -39,10 +39,8 @@ class CoopCoordinator(DataUpdateCoordinator[dict[str, Device]]):
     async def perform_action(self, device_id, key):
         """Perform an action on a device."""
         await self._api.perform_action(self.data[device_id], key)
-        await self.async_request_refresh()
-
-        # Non-blocking 10-second wait, before a 2nd refresh. Allow a delayed state change to occur, such as the door opening or closing
         await asyncio.sleep(10)
+        # Allow time for API to communicate with device.
         await self.async_request_refresh()
 
     async def patch_config(self, device):

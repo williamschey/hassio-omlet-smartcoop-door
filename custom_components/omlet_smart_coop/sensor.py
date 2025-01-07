@@ -13,6 +13,7 @@ from homeassistant.const import (
     LIGHT_LUX,
     PERCENTAGE,
     SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
+    STATE_UNAVAILABLE,
     UnitOfTime,
 )
 from homeassistant.core import HomeAssistant, callback
@@ -129,6 +130,11 @@ class CoopNextUpdateTime(OmletBaseEntity, SensorEntity):
 
     @callback
     def _update_attr(self, device: Device) -> None:
+        if device.state.general.powerSource == "external":
+            self._attr_state = STATE_UNAVAILABLE
+            self._attr_native_value = None
+            return
+
         strippedTime = datetime.strptime(
             device.configuration.general.datetime[:-6], "%Y-%m-%dT%H:%M:%S"
         ) + timedelta(seconds=device.configuration.general.pollFreq)
