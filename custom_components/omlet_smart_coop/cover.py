@@ -1,4 +1,5 @@
 """Support for Omlet Smart Coop Door."""
+from datetime import timedelta
 
 from smartcoop.api.models import Device
 
@@ -42,6 +43,7 @@ class CoopCover(OmletBaseEntity, CoverEntity):
         self._attr_is_opening = True 
         self._attr_is_closing = False       
         self.async_write_ha_state()
+        self.coordinator.update_interval = timedelta(seconds=10)
         await self.coordinator.perform_action(self.device_id, "open")
 
     async def async_close_cover(self):
@@ -49,6 +51,7 @@ class CoopCover(OmletBaseEntity, CoverEntity):
         self._attr_is_opening = False 
         self._attr_is_closing = True  
         self.async_write_ha_state()
+        self.coordinator.update_interval = timedelta(seconds=10)
         await self.coordinator.perform_action(self.device_id, "close")
 
 
@@ -67,6 +70,10 @@ class CoopCover(OmletBaseEntity, CoverEntity):
         self._attr_is_closed = self.raw_state == "closed"
         self._attr_is_closing = self.raw_state in ("closing", "closepending")
         self._attr_is_opening = self.raw_state in ("opening", "openpending")
+        # if opening or closing, poll ever 10 secs, otherwise poll every 60 secs
+        if (not self._attr_is_closing and not self._attr_is_opening):
+            if (timedelta(seconds=60).__ne__(self.coordinator.update_interval)):
+                self.coordinator.update_interval = timedelta(seconds=60)
 
     
     @property
