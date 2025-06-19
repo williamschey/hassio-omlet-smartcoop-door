@@ -6,6 +6,6 @@
   "documentation": "https://github.com/williamschey/hassio-omlet-smartcoop-door/wiki",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/williamschey/hassio-omlet-smartcoop-door/issues",
-  "requirements": ["smartcoop-python-sdk==0.1.2"],
+  "requirements": ["smartcoop-python-sdk==0.1.3"],
   "version": "0.9.5"
 }
