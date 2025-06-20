@@ -1,5 +1,10 @@
-# hassio-omlet-smartcoop-door
+# hassio-omlet-smartcoop
+
+This is an expansion of functionality from williamschey's hassio-omlet-smartcoop-door to combine 
+
 Home Assistant integration to monitor and control Omlet's [Smart Automatic Chicken Coop Door](https://www.omlet.co.uk/smart-automatic-chicken-coop-door-opener/)
+and
+the new [Smart Automatic Chicken Feeder](https://www.omlet.com.au/shop/chicken_keeping/smart-no-waste-chicken-feeder/)
 
 Add repo to HACS by adding custom repository https://github.com/williamschey/hassio-omlet-smartcoop-door
 
