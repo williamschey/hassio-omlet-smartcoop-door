@@ -1,9 +1,6 @@
 # hassio-omlet-smartcoop-door
 Home Assistant integration to monitor and control Omlet's [Smart Automatic Chicken Coop Door](https://www.omlet.co.uk/smart-automatic-chicken-coop-door-opener/)
 
-Add repo to HACS by adding custom repository https://github.com/williamschey/hassio-omlet-smartcoop-door
-
-
 The Omlet server is **polled**, using their official API, to get the latest status of your devices. Also supports **cloud push** using Omlet's webhooks. Home Assistant can be notified in real-time of any changes without needing to wait for a poll.
 
 
