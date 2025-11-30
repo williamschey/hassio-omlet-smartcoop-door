@@ -1,11 +1,16 @@
 {
   "domain": "omlet_smart_coop",
   "name": "Omlet Smart Coop",
-  "codeowners": ["@williamschey", "@dpwood"],
+  "codeowners": [
+    "@williamschey",
+    "@dpwood"
+  ],
   "config_flow": true,
   "documentation": "https://github.com/williamschey/hassio-omlet-smartcoop-door/wiki",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/williamschey/hassio-omlet-smartcoop-door/issues",
-  "requirements": ["smartcoop-python-sdk==1.1.2"],
-  "version": "0.9.7"
+  "requirements": [
+    "smartcoop-python-sdk==1.1.2"
+  ],
+  "version": "0.9.8"
 }
