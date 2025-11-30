@@ -6,7 +6,7 @@ from smartcoop.api.models import Device
 
 from homeassistant.components.number import NumberEntity
 from homeassistant.components.number.const import NumberMode
-from homeassistant.const import LIGHT_LUX, UnitOfTime
+from homeassistant.const import LIGHT_LUX, UnitOfTime, UnitOfTemperature
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import Entity, EntityCategory
 
@@ -22,9 +22,13 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
 
     numberInputs = []
     for device in coordinator.data.values():
-        if hasattr(device.configuration, "light") and device.configuration.light:
+        if hasattr(device.configuration, "door") and device.configuration.door:
             numberInputs.append(CoopOpenLightLevelInput(device, coordinator))
             numberInputs.append(CoopCloseLightLevelInput(device, coordinator))
+        
+        if hasattr(device.configuration, "fan") and device.configuration.fan:
+            numberInputs.append(CoopFanTempOn(device, coordinator))
+            numberInputs.append(CoopFanTempOff(device, coordinator))
         numberInputs.append(CoopPollTimeInput(device, coordinator))
     async_add_entities(numberInputs)
 
@@ -120,3 +124,47 @@ class CoopPollTimeInput(CoopNumberInput):
 
     def _patch_config(self, device: Device, pollTime: int):
         device.configuration.general.pollFreq = pollTime
+
+
+class CoopFanTempOn(CoopNumberInput):
+    """Representation of a Smart Coop Fan Temp On input entity."""
+    _attr_unit_of_measurement = UnitOfTemperature.CELSIUS
+    _attr_native_min_value = 0
+    _attr_native_max_value = 50
+    _attr_native_step = 1
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_mode = NumberMode.BOX
+
+    def __init__(self, device, coordinator: CoopCoordinator) -> None:
+        """Initialize the device."""
+        self._attr_name = f"{device.name} Fan Temp On"
+        super().__init__(device, coordinator, "fan_temp_on")
+
+    @callback
+    def _update_attr(self, device: Device):
+        self._attr_native_value = device.configuration.fan.tempOn
+
+    def _patch_config(self, device: Device, temp: int):
+        device.configuration.fan.tempOn = temp
+
+
+class CoopFanTempOff(CoopNumberInput):
+    """Representation of a Smart Coop Fan Temp Off input entity."""
+    _attr_unit_of_measurement = UnitOfTemperature.CELSIUS
+    _attr_native_min_value = 0
+    _attr_native_max_value = 50
+    _attr_native_step = 1
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_mode = NumberMode.BOX
+
+    def __init__(self, device, coordinator: CoopCoordinator) -> None:
+        """Initialize the device."""
+        self._attr_name = f"{device.name} Fan Temp Off"
+        super().__init__(device, coordinator, "fan_temp_off")
+
+    @callback
+    def _update_attr(self, device: Device):
+        self._attr_native_value = device.configuration.fan.tempOff
+
+    def _patch_config(self, device: Device, temp: int):
+        device.configuration.fan.tempOff = temp

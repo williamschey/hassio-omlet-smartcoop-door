@@ -13,6 +13,22 @@ class DOOR_MODES(str, Enum):
     MANUAL = "manual"
 
 
+class FAN_MODES(str, Enum):
+    """Enumeration of fan modes."""
+
+    MANUAL = "manual"
+    TIME = "time"
+    TEMPERATURE = "temperature"
+
+
+class FAN_SPEEDS(int, Enum):
+    """Enumeration of fan speeds."""
+
+    LOW = 60
+    MEDIUM = 80
+    HIGH = 100
+
+
 DOMAIN = "omlet_smart_coop"
 API_KEY = "api_key"
 PLATFORMS = [

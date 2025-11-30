@@ -21,6 +21,11 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
         if hasattr(device.configuration, "door") and device.configuration.door:
             timeInputs.append(CoopOpenTimeInput(device, coordinator))
             timeInputs.append(CoopCloseTimeInput(device, coordinator))
+        
+        if hasattr(device.configuration, "fan") and device.configuration.fan:
+            for i in range(1, 5):
+                timeInputs.append(CoopFanTimeOn(device, coordinator, i))
+                timeInputs.append(CoopFanTimeOff(device, coordinator, i))
         timeInputs.append(CoopOvernightSleepStartInput(device, coordinator))
         timeInputs.append(CoopOvernightSleepEndInput(device, coordinator))
     async_add_entities(timeInputs)
@@ -114,3 +119,39 @@ class CoopOvernightSleepEndInput(CoopTimeInput):
 
     def _patch_config(self, device: Device, strTime):
         device.configuration.general.overnightSleepEnd = strTime
+
+
+class CoopFanTimeOn(CoopTimeInput):
+    """Representation of a Smart Coop Fan Time On input entity."""
+    _attr_entity_category = EntityCategory.CONFIG
+
+    def __init__(self, device: Device, coordinator, index: int) -> None:
+        """Initialize the device."""
+        self._index = index
+        self._attr_name = f"{device.name} Fan Time On {index}"
+        super().__init__(device, coordinator, f"fan_time_on_{index}")
+
+    @callback
+    def _update_attr(self, device: Device):
+        self._attr_state = getattr(device.configuration.fan, f"timeOn{self._index}")
+
+    def _patch_config(self, device: Device, strTime):
+        setattr(device.configuration.fan, f"timeOn{self._index}", strTime)
+
+
+class CoopFanTimeOff(CoopTimeInput):
+    """Representation of a Smart Coop Fan Time Off input entity."""
+    _attr_entity_category = EntityCategory.CONFIG
+
+    def __init__(self, device: Device, coordinator, index: int) -> None:
+        """Initialize the device."""
+        self._index = index
+        self._attr_name = f"{device.name} Fan Time Off {index}"
+        super().__init__(device, coordinator, f"fan_time_off_{index}")
+
+    @callback
+    def _update_attr(self, device: Device):
+        self._attr_state = getattr(device.configuration.fan, f"timeOff{self._index}")
+
+    def _patch_config(self, device: Device, strTime):
+        setattr(device.configuration.fan, f"timeOff{self._index}", strTime)
