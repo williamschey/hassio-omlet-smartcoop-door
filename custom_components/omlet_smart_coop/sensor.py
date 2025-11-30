@@ -41,10 +41,9 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
         sensors.append(CoopCloseTime(device, coordinator))
         sensors.append(CoopNextUpdateTime(device, coordinator))
         sensors.append(CoopDoorFault(device, coordinator))
-        if hasattr(device.state, "fan"):
-            sensors.append(CoopFanState(device, coordinator))
-            sensors.append(CoopFanTemperature(device, coordinator))
-            sensors.append(CoopFanHumidity(device, coordinator))
+        sensors.append(CoopFanState(device, coordinator))
+        sensors.append(CoopFanTemperature(device, coordinator))
+        sensors.append(CoopFanHumidity(device, coordinator))
     async_add_entities(sensors)
 
 
@@ -252,7 +251,8 @@ class CoopFanState(OmletBaseEntity, SensorEntity):
 
     @callback
     def _update_attr(self, device: Device) -> None:
-        self._attr_native_value = device.state.fan.state
+        if hasattr(device.state, "fan"):
+            self._attr_native_value = device.state.fan.state
 
 
 class CoopFanTemperature(OmletBaseEntity, SensorEntity):
@@ -269,7 +269,8 @@ class CoopFanTemperature(OmletBaseEntity, SensorEntity):
 
     @callback
     def _update_attr(self, device: Device) -> None:
-        self._attr_native_value = device.state.fan.temperature
+        if hasattr(device.state, "fan"):
+            self._attr_native_value = device.state.fan.temperature
 
 
 class CoopFanHumidity(OmletBaseEntity, SensorEntity):
@@ -286,4 +287,5 @@ class CoopFanHumidity(OmletBaseEntity, SensorEntity):
 
     @callback
     def _update_attr(self, device: Device) -> None:
-        self._attr_native_value = device.state.fan.humidity
+        if hasattr(device.state, "fan"):
+            self._attr_native_value = device.state.fan.humidity
