@@ -14,6 +14,7 @@ from homeassistant.const import (
     PERCENTAGE,
     SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
     STATE_UNAVAILABLE,
+    UnitOfTemperature,
     UnitOfTime,
 )
 from homeassistant.core import HomeAssistant, callback
@@ -40,6 +41,9 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
         sensors.append(CoopCloseTime(device, coordinator))
         sensors.append(CoopNextUpdateTime(device, coordinator))
         sensors.append(CoopDoorFault(device, coordinator))
+        sensors.append(CoopFanState(device, coordinator))
+        sensors.append(CoopFanTemperature(device, coordinator))
+        sensors.append(CoopFanHumidity(device, coordinator))
     async_add_entities(sensors)
 
 
@@ -235,3 +239,50 @@ class CoopDoorFault(OmletBaseEntity, SensorEntity):
     @callback
     def _update_attr(self, device: Device) -> None:
         self._attr_native_value = device.state.door.fault
+
+
+class CoopFanState(OmletBaseEntity, SensorEntity):
+    """Representation of a Smart Coop fan state."""
+
+    def __init__(self, device, coordinator: CoopCoordinator) -> None:
+        """Initialize the device."""
+        self._attr_name = f"{device.name} Fan State"
+        super().__init__(device, coordinator, "fan_state")
+
+    @callback
+    def _update_attr(self, device: Device) -> None:
+        self._attr_native_value = device.state.fan.state
+
+
+class CoopFanTemperature(OmletBaseEntity, SensorEntity):
+    """Representation of a Smart Coop fan temperature."""
+
+    _attr_device_class = SensorDeviceClass.TEMPERATURE
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
+
+    def __init__(self, device, coordinator: CoopCoordinator) -> None:
+        """Initialize the device."""
+        self._attr_name = f"{device.name} Fan Temperature"
+        super().__init__(device, coordinator, "fan_temperature")
+
+    @callback
+    def _update_attr(self, device: Device) -> None:
+        self._attr_native_value = device.state.fan.temperature
+
+
+class CoopFanHumidity(OmletBaseEntity, SensorEntity):
+    """Representation of a Smart Coop fan humidity."""
+
+    _attr_device_class = SensorDeviceClass.HUMIDITY
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = PERCENTAGE
+
+    def __init__(self, device, coordinator: CoopCoordinator) -> None:
+        """Initialize the device."""
+        self._attr_name = f"{device.name} Fan Humidity"
+        super().__init__(device, coordinator, "fan_humidity")
+
+    @callback
+    def _update_attr(self, device: Device) -> None:
+        self._attr_native_value = device.state.fan.humidity
