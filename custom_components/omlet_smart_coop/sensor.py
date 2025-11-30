@@ -36,14 +36,17 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
         sensors.append(CoopWifiStrength(device, coordinator))
         sensors.append(CoopUpdateTime(device, coordinator))
         sensors.append(CoopPollingInterval(device, coordinator))
-        sensors.append(CoopLightLevel(device, coordinator))
-        sensors.append(CoopOpenTime(device, coordinator))
-        sensors.append(CoopCloseTime(device, coordinator))
+        if hasattr(device.state, "light") and device.state.light:
+            sensors.append(CoopLightLevel(device, coordinator))
+            sensors.append(CoopOpenTime(device, coordinator))
+            sensors.append(CoopCloseTime(device, coordinator))
         sensors.append(CoopNextUpdateTime(device, coordinator))
-        sensors.append(CoopDoorFault(device, coordinator))
-        sensors.append(CoopFanState(device, coordinator))
-        sensors.append(CoopFanTemperature(device, coordinator))
-        sensors.append(CoopFanHumidity(device, coordinator))
+        if hasattr(device.state, "door") and device.state.door:
+            sensors.append(CoopDoorFault(device, coordinator))
+        if hasattr(device.state, "fan") and device.state.fan:
+            sensors.append(CoopFanState(device, coordinator))
+            sensors.append(CoopFanTemperature(device, coordinator))
+            sensors.append(CoopFanHumidity(device, coordinator))
     async_add_entities(sensors)
 
 

@@ -18,8 +18,9 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
 
     timeInputs = []
     for device in coordinator.data.values():
-        timeInputs.append(CoopOpenTimeInput(device, coordinator))
-        timeInputs.append(CoopCloseTimeInput(device, coordinator))
+        if hasattr(device.configuration, "door") and device.configuration.door:
+            timeInputs.append(CoopOpenTimeInput(device, coordinator))
+            timeInputs.append(CoopCloseTimeInput(device, coordinator))
         timeInputs.append(CoopOvernightSleepStartInput(device, coordinator))
         timeInputs.append(CoopOvernightSleepEndInput(device, coordinator))
     async_add_entities(timeInputs)

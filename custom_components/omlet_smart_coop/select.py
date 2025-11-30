@@ -18,8 +18,9 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
 
     selects = []
     for device in coordinator.data.values():
-        selects.append(CoopOpenMode(device, coordinator))
-        selects.append(CoopCloseMode(device, coordinator))
+        if hasattr(device.configuration, "door") and device.configuration.door:
+            selects.append(CoopOpenMode(device, coordinator))
+            selects.append(CoopCloseMode(device, coordinator))
     async_add_entities(selects)
 
 

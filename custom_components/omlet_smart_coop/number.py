@@ -22,8 +22,9 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
 
     numberInputs = []
     for device in coordinator.data.values():
-        numberInputs.append(CoopOpenLightLevelInput(device, coordinator))
-        numberInputs.append(CoopCloseLightLevelInput(device, coordinator))
+        if hasattr(device.configuration, "light") and device.configuration.light:
+            numberInputs.append(CoopOpenLightLevelInput(device, coordinator))
+            numberInputs.append(CoopCloseLightLevelInput(device, coordinator))
         numberInputs.append(CoopPollTimeInput(device, coordinator))
     async_add_entities(numberInputs)
 

@@ -21,7 +21,10 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
     """Set up Omlet Smart Coop cover."""
     coordinator = hass.data[DOMAIN][entry.entry_id]
 
-    lights = [CoopCover(device, coordinator) for device in coordinator.data.values()]
+    lights = []
+    for device in coordinator.data.values():
+        if hasattr(device.state, "light") and device.state.light:
+            lights.append(CoopCover(device, coordinator))
     async_add_entities(lights)
 
 
