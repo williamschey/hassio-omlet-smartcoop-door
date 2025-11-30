@@ -41,9 +41,10 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
         sensors.append(CoopCloseTime(device, coordinator))
         sensors.append(CoopNextUpdateTime(device, coordinator))
         sensors.append(CoopDoorFault(device, coordinator))
-        sensors.append(CoopFanState(device, coordinator))
-        sensors.append(CoopFanTemperature(device, coordinator))
-        sensors.append(CoopFanHumidity(device, coordinator))
+        if hasattr(device.state, "fan"):
+            sensors.append(CoopFanState(device, coordinator))
+            sensors.append(CoopFanTemperature(device, coordinator))
+            sensors.append(CoopFanHumidity(device, coordinator))
     async_add_entities(sensors)
 
 
