@@ -22,9 +22,10 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
 
     numberInputs = []
     for device in coordinator.data.values():
-        numberInputs.append(CoopOpenLightLevelInput(device, coordinator))
-        numberInputs.append(CoopCloseLightLevelInput(device, coordinator))
         numberInputs.append(CoopPollTimeInput(device, coordinator))
+        if device.deviceType == "Autodoor":
+            numberInputs.append(CoopOpenLightLevelInput(device, coordinator))
+            numberInputs.append(CoopCloseLightLevelInput(device, coordinator))
     async_add_entities(numberInputs)
 
 class CoopNumberInput(OmletBaseEntity, NumberEntity):

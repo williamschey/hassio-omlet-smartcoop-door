@@ -35,11 +35,13 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
         sensors.append(CoopWifiStrength(device, coordinator))
         sensors.append(CoopUpdateTime(device, coordinator))
         sensors.append(CoopPollingInterval(device, coordinator))
-        sensors.append(CoopLightLevel(device, coordinator))
-        sensors.append(CoopOpenTime(device, coordinator))
-        sensors.append(CoopCloseTime(device, coordinator))
         sensors.append(CoopNextUpdateTime(device, coordinator))
-        sensors.append(CoopDoorFault(device, coordinator))
+        
+        if device.deviceType == "Autodoor":
+            sensors.append(CoopLightLevel(device, coordinator))
+            sensors.append(CoopOpenTime(device, coordinator))
+            sensors.append(CoopCloseTime(device, coordinator))
+            sensors.append(CoopDoorFault(device, coordinator))
     async_add_entities(sensors)
 
 

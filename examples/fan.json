@@ -1,0 +1,129 @@
+{
+  "deviceId": "redacted",
+  "deviceSerial": "redacted",
+  "deviceTypeId": 3,
+  "groupId": "redacted",
+  "name": "Anthony's fan",
+  "deletePending": 0,
+  "lastConnected": "2025-11-21T11:42:12+00:00",
+  "nextConnection": null,
+  "overdueConnection": 0,
+  "batteryCount": 0,
+  "batteryWarned": 0,
+  "bleOnly": 0,
+  "mqttServerId": 1,
+  "state": {
+    "general": {
+      "firmwareVersionCurrent": "1.0.7-d192fcd2",
+      "firmwareLastCheck": "2025-11-23T23:23:48+00:00",
+      "batteryLevel": 0,
+      "powerSource": "external",
+      "firmwareVersionPrevious": "1.0.1-c35cc9c6",
+      "uptime": 304215
+    },
+    "connectivity": {
+      "wifiStrength": -41,
+      "ssid": "AntJen2",
+      "connected": true
+    },
+    "fan": {
+      "state": "on",
+      "temperature": 20,
+      "humidity": 75
+    }
+  },
+  "configuration": {
+    "fan": {
+      "manualSpeed": 60,
+      "mode": "manual",
+      "timeOn1": "00:00",
+      "timeOff1": "00:00",
+      "timeSpeed1": 100,
+      "timeOn2": "00:00",
+      "timeOff2": "00:00",
+      "timeSpeed2": 100,
+      "timeOn3": "00:00",
+      "timeOff3": "00:00",
+      "timeSpeed3": 100,
+      "timeOn4": "00:00",
+      "timeOff4": "00:00",
+      "timeSpeed4": 100,
+      "tempOn": 25,
+      "tempOff": 23,
+      "tempSpeed": 100
+    },
+    "connectivity": {
+      "wifiState": "on"
+    },
+    "general": {
+      "datetime": "2025-11-24T12:01:58+00:00",
+      "timezone": "Etc/Universal",
+      "updateFrequency": 86400,
+      "language": "en-AU",
+      "stayAliveTime": 5,
+      "statusUpdatePeriod": 21600,
+      "pollFreq": 30
+    }
+  },
+  "deviceType": "Fan",
+  "actions": [
+    {
+      "actionName": "boost",
+      "description": "Boost Fan",
+      "actionValue": "boost",
+      "pendingValue": null,
+      "callback": null,
+      "url": "/device/CAGKFfIk2Uqw9DU6/action/boost"
+    },
+    {
+      "actionName": "factory_reset",
+      "description": "Factory Reset",
+      "actionValue": "factoryReset",
+      "pendingValue": null,
+      "callback": null,
+      "url": "/device/CAGKFfIk2Uqw9DU6/action/factory_reset"
+    },
+    {
+      "actionName": "firmware_update",
+      "description": "Check for Firmware Update",
+      "actionValue": "ota",
+      "pendingValue": null,
+      "callback": null,
+      "url": "/device/CAGKFfIk2Uqw9DU6/action/firmware_update"
+    },
+    {
+      "actionName": "off",
+      "description": "Fan Off",
+      "actionValue": "off",
+      "pendingValue": "offpending",
+      "callback": null,
+      "url": "/device/CAGKFfIk2Uqw9DU6/action/off"
+    },
+    {
+      "actionName": "on",
+      "description": "Fan On",
+      "actionValue": "on",
+      "pendingValue": "onpending",
+      "callback": null,
+      "url": "/device/CAGKFfIk2Uqw9DU6/action/on"
+    },
+    {
+      "actionName": "restart",
+      "description": "Restart",
+      "actionValue": "restart",
+      "pendingValue": null,
+      "callback": null,
+      "url": "/device/CAGKFfIk2Uqw9DU6/action/restart"
+    },
+    {
+      "actionName": "setup_wifi",
+      "description": "Reset Wifi Credentials",
+      "actionValue": "setupWiFi",
+      "pendingValue": null,
+      "callback": null,
+      "url": "/device/CAGKFfIk2Uqw9DU6/action/setup_wifi"
+    }
+  ],
+  "meta": [],
+  "metadata": []
+}

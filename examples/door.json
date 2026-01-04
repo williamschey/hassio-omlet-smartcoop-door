@@ -1,0 +1,173 @@
+{
+    "deviceId": "redacted",
+    "deviceSerial": "redacted",
+    "deviceTypeId": 1,
+    "groupId": "redacted",
+    "name": "Chicken Coop",
+    "deletePending": 0,
+    "lastConnected": "2025-11-27T15:04:46+00:00",
+    "nextConnection": null,
+    "overdueConnection": 0,
+    "batteryCount": 0,
+    "batteryWarned": 0,
+    "bleOnly": 0,
+    "mqttServerId": 1,
+    "state": {
+        "light": {
+            "state": "off"
+        },
+        "general": {
+            "firmwareVersionCurrent": "1.0.53-985ecc8d",
+            "firmwareLastCheck": "2025-11-30T02:31:35+10:00",
+            "batteryLevel": 100,
+            "powerSource": "external",
+            "displayLine1": "                ",
+            "displayLine2": "                ",
+            "firmwareVersionPrevious": "1.0.51-4efeeb2e",
+            "uptime": 3005765
+        },
+        "connectivity": {
+            "wifiStrength": -46,
+            "ssid": "47 Rachael",
+            "connected": true
+        },
+        "door": {
+            "state": "open",
+            "lastOpenTime": "2025-11-30T06:44:13+10:00",
+            "lastCloseTime": "2025-11-29T20:20:02+10:00",
+            "fault": "none",
+            "lightLevel": 100
+        }
+    },
+    "configuration": {
+        "door": {
+            "openMode": "time",
+            "openDelay": 0,
+            "openTime": "06:44",
+            "closeMode": "time",
+            "closeDelay": 0,
+            "closeLightLevel": 7,
+            "closeTime": "20:23",
+            "openLightLevel": 27,
+            "doorType": "sliding",
+            "colour": "green",
+            "lightOffset": 3,
+            "temperatureUnit": "C"
+        },
+        "light": {
+            "mode": "auto",
+            "minutesBeforeClose": 5,
+            "maxOnTime": 3,
+            "equipped": 2
+        },
+        "connectivity": {
+            "wifiState": "on"
+        },
+        "general": {
+            "datetime": "2025-11-30T14:13:34+10:00",
+            "timezone": "Australia/Brisbane",
+            "useDst": false,
+            "updateFrequency": 86400,
+            "language": "en",
+            "stayAliveTime": 0,
+            "statusUpdatePeriod": 21600,
+            "pollFreq": 600,
+            "overnightSleepEnable": true,
+            "overnightSleepStart": "21:00",
+            "overnightSleepEnd": "06:00"
+        }
+    },
+    "deviceType": "Autodoor",
+    "actions": [
+        {
+            "actionName": "calibrate",
+            "description": "Calibrate Door",
+            "actionValue": "calibrate",
+            "pendingValue": "closepending",
+            "callback": null,
+            "url": "/device/LyOBaHCK2q19jiOF/action/calibrate"
+        },
+        {
+            "actionName": "close",
+            "description": "Close Door",
+            "actionValue": "close",
+            "pendingValue": "closepending",
+            "callback": null,
+            "url": "/device/LyOBaHCK2q19jiOF/action/close"
+        },
+        {
+            "actionName": "detect",
+            "description": "Detect Coop Light",
+            "actionValue": "test",
+            "pendingValue": null,
+            "callback": null,
+            "url": "/device/LyOBaHCK2q19jiOF/action/detect"
+        },
+        {
+            "actionName": "factory_reset",
+            "description": "Factory Reset",
+            "actionValue": "factoryReset",
+            "pendingValue": null,
+            "callback": null,
+            "url": "/device/LyOBaHCK2q19jiOF/action/factory_reset"
+        },
+        {
+            "actionName": "firmware_update",
+            "description": "Check for Firmware Update",
+            "actionValue": "ota",
+            "pendingValue": null,
+            "callback": null,
+            "url": "/device/LyOBaHCK2q19jiOF/action/firmware_update"
+        },
+        {
+            "actionName": "off",
+            "description": "Light Off",
+            "actionValue": "off",
+            "pendingValue": "offpending",
+            "callback": null,
+            "url": "/device/LyOBaHCK2q19jiOF/action/off"
+        },
+        {
+            "actionName": "on",
+            "description": "Light On",
+            "actionValue": "on",
+            "pendingValue": "onpending",
+            "callback": null,
+            "url": "/device/LyOBaHCK2q19jiOF/action/on"
+        },
+        {
+            "actionName": "open",
+            "description": "Open Door",
+            "actionValue": "open",
+            "pendingValue": "openpending",
+            "callback": null,
+            "url": "/device/LyOBaHCK2q19jiOF/action/open"
+        },
+        {
+            "actionName": "restart",
+            "description": "Restart",
+            "actionValue": "restart",
+            "pendingValue": null,
+            "callback": null,
+            "url": "/device/LyOBaHCK2q19jiOF/action/restart"
+        },
+        {
+            "actionName": "setup_wifi",
+            "description": "Reset Wifi Credentials",
+            "actionValue": "setupWiFi",
+            "pendingValue": null,
+            "callback": null,
+            "url": "/device/LyOBaHCK2q19jiOF/action/setup_wifi"
+        },
+        {
+            "actionName": "stop",
+            "description": "Stop Door",
+            "actionValue": "stop",
+            "pendingValue": "stopping",
+            "callback": null,
+            "url": "/device/LyOBaHCK2q19jiOF/action/stop"
+        }
+    ],
+    "meta": [],
+    "metadata": []
+}
