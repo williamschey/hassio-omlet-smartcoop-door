@@ -67,7 +67,7 @@ class CoopFan(OmletBaseEntity, FanEntity):
         config = device.configuration.fan
         
         # If fan is off, percentage is None (or 0, but HA prefers None for off)
-        if not self.is_on:
+        if not self._attr_is_on:
             return None
 
         mode = config.mode
