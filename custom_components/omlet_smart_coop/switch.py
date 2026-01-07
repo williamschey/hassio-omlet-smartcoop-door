@@ -21,9 +21,10 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
     """Set up Omlet Smart Coop sensors."""
     coordinator = hass.data[DOMAIN][entry.entry_id]
 
-    sensors = [
-        CoopOvernightSleepEnable(device, coordinator) for device in coordinator.data.values()
-    ]
+    sensors = []
+    for device in coordinator.data.values():        
+        if device.deviceType == "Autodoor":
+            sensors.append(CoopOvernightSleepEnable(device, coordinator))
     async_add_entities(sensors)
 
 

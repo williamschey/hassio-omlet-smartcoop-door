@@ -15,6 +15,7 @@ from homeassistant.const import (
     SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
     STATE_UNAVAILABLE,
     UnitOfTime,
+    UnitOfTemperature,
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityCategory
@@ -31,17 +32,23 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
 
     sensors = []
     for device in coordinator.data.values():
-        sensors.append(CoopBatterySensor(device, coordinator))
         sensors.append(CoopWifiStrength(device, coordinator))
         sensors.append(CoopUpdateTime(device, coordinator))
         sensors.append(CoopPollingInterval(device, coordinator))
         sensors.append(CoopNextUpdateTime(device, coordinator))
         
         if device.deviceType == "Autodoor":
+            sensors.append(CoopBatterySensor(device, coordinator))
             sensors.append(CoopLightLevel(device, coordinator))
             sensors.append(CoopOpenTime(device, coordinator))
             sensors.append(CoopCloseTime(device, coordinator))
             sensors.append(CoopDoorFault(device, coordinator))
+        
+        if device.deviceType == "Fan":
+            sensors.append(CoopFanSpeed(device, coordinator))
+            sensors.append(CoopFanTemperature(device, coordinator))
+            sensors.append(CoopFanHumidity(device, coordinator))
+            
     async_add_entities(sensors)
 
 
@@ -237,3 +244,108 @@ class CoopDoorFault(OmletBaseEntity, SensorEntity):
     @callback
     def _update_attr(self, device: Device) -> None:
         self._attr_native_value = device.state.door.fault
+
+class CoopFanSpeed(OmletBaseEntity, SensorEntity):
+    """Representation of a Smart Coop Fan speed sensor."""
+
+    _attr_native_unit_of_measurement = PERCENTAGE
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_icon = "mdi:fan"
+
+    def __init__(self, device, coordinator: CoopCoordinator) -> None:
+        """Initialize the device."""
+        self._attr_name = f"{device.name} Fan Speed"
+        super().__init__(device, coordinator, "fan_speed")
+
+    @callback
+    def _update_attr(self, device: Device) -> None:
+        # Re-use logic from fan entity or just calculate similarly?
+        # Ideally we should use the same logic. 
+        # But we can't easily access the FanEntity instance from here.
+        # We will duplicate the simple logic for now or read from the same config.
+        # The user said "Using @[examples/fan.json] for reference... the current Fan Speed can assumed to be..."
+        # So we should implement the same logic here.
+        
+        config = device.configuration.fan
+        state = device.state.fan.state # "on" or "off"
+        
+        if state != "on":
+            self._attr_native_value = 0
+            return
+
+        mode = config.mode
+        
+        if mode == "manual":
+            self._attr_native_value = config.manualSpeed
+            return
+        
+        if mode == "temperature":
+            self._attr_native_value = config.tempSpeed
+            return
+            
+        if mode == "time":
+            import datetime
+            now = datetime.datetime.now().time()
+            
+            def parse_time(t_str):
+                try:
+                    return datetime.datetime.strptime(t_str, "%H:%M").time()
+                except (ValueError, TypeError):
+                    return None
+
+            for i in range(1, 5):
+                on_str = getattr(config, f"timeOn{i}", None)
+                off_str = getattr(config, f"timeOff{i}", None)
+                speed = getattr(config, f"timeSpeed{i}", 100)
+                
+                start = parse_time(on_str)
+                end = parse_time(off_str)
+                
+                if start and end and start != end:
+                    if start < end:
+                        if start <= now < end:
+                            self._attr_native_value = speed
+                            return
+                    else: 
+                        if start <= now or now < end:
+                            self._attr_native_value = speed
+                            return
+                            
+            self._attr_native_value = 100
+            return
+            
+        self._attr_native_value = None
+
+
+class CoopFanTemperature(OmletBaseEntity, SensorEntity):
+    """Representation of a Smart Coop Fan temperature sensor."""
+
+    _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
+    _attr_device_class = SensorDeviceClass.TEMPERATURE
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    def __init__(self, device, coordinator: CoopCoordinator) -> None:
+        """Initialize the device."""
+        self._attr_name = f"{device.name} Temperature"
+        super().__init__(device, coordinator, "temperature")
+
+    @callback
+    def _update_attr(self, device: Device) -> None:
+        self._attr_native_value = device.state.fan.temperature
+
+
+class CoopFanHumidity(OmletBaseEntity, SensorEntity):
+    """Representation of a Smart Coop Fan humidity sensor."""
+
+    _attr_native_unit_of_measurement = PERCENTAGE
+    _attr_device_class = SensorDeviceClass.HUMIDITY
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    def __init__(self, device, coordinator: CoopCoordinator) -> None:
+        """Initialize the device."""
+        self._attr_name = f"{device.name} Humidity"
+        super().__init__(device, coordinator, "humidity")
+
+    @callback
+    def _update_attr(self, device: Device) -> None:
+        self._attr_native_value = device.state.fan.humidity
