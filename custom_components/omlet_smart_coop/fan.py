@@ -127,17 +127,6 @@ class CoopFan(OmletBaseEntity, FanEntity):
     ) -> None:
         """Turn on the fan."""
         self._attr_is_on = True
-        
-        if preset_mode:
-             await self.async_set_preset_mode(preset_mode)
-
-        # If percentage is provided, we can't really set slightly arbitrary speed 
-        # because the device uses modes. 
-        # But if the user sets speed, logic suggests we might want to switch to Manual 
-        # and set manualSpeed? 
-        # The user req didn't specify "Setting speed" logic, only "Reading speed".
-        # For now, I will just turn it on.
-        
         self.async_write_ha_state()
         await self.coordinator.perform_action(self.device_id, "on")
 
@@ -151,8 +140,6 @@ class CoopFan(OmletBaseEntity, FanEntity):
     def _update_attr(self, device: Device) -> None:
         self.raw_state = device.state.fan.state
         self._attr_is_on = self.raw_state in ("on", "onpending")
-        # Attributes are updated via properties usage of self.coordinator.data
-        # trigger update of state
 
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:
