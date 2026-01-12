@@ -22,8 +22,8 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
 
     numberInputs = []
     for device in coordinator.data.values():
-        numberInputs.append(CoopPollTimeInput(device, coordinator))
         if device.deviceType == "Autodoor":
+            numberInputs.append(CoopPollTimeInput(device, coordinator))
             numberInputs.append(CoopOpenLightLevelInput(device, coordinator))
             numberInputs.append(CoopCloseLightLevelInput(device, coordinator))
             
