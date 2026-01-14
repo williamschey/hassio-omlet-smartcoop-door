@@ -135,15 +135,8 @@ class CoopFan(OmletBaseEntity, FanEntity):
 
     @callback
     def _update_attr(self, device: Device) -> None:
-        self.raw_state = device.state.fan.state
-                
-        self._attr_is_on = state_str in ("on", "onpending")
-        
-        # Set percentage based on state - must be synchronized with is_on
-        if self._attr_is_on:
-            self._attr_percentage = self._calculate_percentage(device)
-        else:
-            self._attr_percentage = None
+        self.raw_state = device.state.fan.state                
+        self._attr_is_on = self.raw_state in ("on", "onpending")
     
     @property
     def is_on(self):
