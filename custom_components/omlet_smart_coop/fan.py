@@ -2,6 +2,7 @@
 from typing import Any
 
 from smartcoop.api.models import Device
+import logging
 
 from homeassistant.components.fan import (
     FanEntity,
@@ -12,6 +13,9 @@ from homeassistant.core import HomeAssistant, callback
 from .const import DOMAIN
 from .coordinator import CoopCoordinator
 from .entity import OmletBaseEntity
+
+
+_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
@@ -60,16 +64,9 @@ class CoopFan(OmletBaseEntity, FanEntity):
         await self.coordinator.patch_config(device)
         self.async_write_ha_state()
 
-    @property
-    def percentage(self) -> int | None:
-        """Return the current speed percentage."""
-        device = self.coordinator.data[self.device_id]
+    def _calculate_percentage(self, device: Device) -> int | None:
+        """Calculate the current speed percentage based on mode and state."""
         config = device.configuration.fan
-        
-        # If fan is off, percentage is None (or 0, but HA prefers None for off)
-        if not self._attr_is_on:
-            return None
-
         mode = config.mode
         
         if mode == "manual":
@@ -82,10 +79,6 @@ class CoopFan(OmletBaseEntity, FanEntity):
         if mode == "time":
             # Check schedules
             # Structure: timeOn1 (HH:MM), timeOff1 (HH:MM), timeSpeed1 (int)
-            # Default behavior if no schedule matches: 100 per user request logic?
-            # User said: "defaults .. timeSpeed = 100"
-            # And "IF state=on AND mode=time AND current time is between timeOn and timeOff ... THEN timeSpeedX"
-            
             import datetime
             now = datetime.datetime.now().time()
             
@@ -127,19 +120,35 @@ class CoopFan(OmletBaseEntity, FanEntity):
     ) -> None:
         """Turn on the fan."""
         self._attr_is_on = True
+        # Calculate percentage for the on state
+        device = self.coordinator.data[self.device_id]
+        self._attr_percentage = self._calculate_percentage(device)
         self.async_write_ha_state()
         await self.coordinator.perform_action(self.device_id, "on")
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off the fan."""
         self._attr_is_on = False
+        self._attr_percentage = None  # Explicitly set to None when off
         self.async_write_ha_state()
         await self.coordinator.perform_action(self.device_id, "off")
 
     @callback
     def _update_attr(self, device: Device) -> None:
         self.raw_state = device.state.fan.state
-        self._attr_is_on = self.raw_state in ("on", "onpending")
+                
+        self._attr_is_on = state_str in ("on", "onpending")
+        
+        # Set percentage based on state - must be synchronized with is_on
+        if self._attr_is_on:
+            self._attr_percentage = self._calculate_percentage(device)
+        else:
+            self._attr_percentage = None
+    
+    @property
+    def is_on(self):
+        """Return true if the fan is on."""
+        return self.raw_state in ("on", "onpending")
 
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:
