@@ -4,6 +4,21 @@ Home Assistant integration to monitor and control Omlet's [Smart Automatic Chick
 The Omlet server is **polled**, using their official API, to get the latest status of your devices. Also supports **cloud push** using Omlet's webhooks. Home Assistant can be notified in real-time of any changes without needing to wait for a poll.
 
 
+## Supported Devices
+
+- [x] Smart Automatic Chicken Coop Door
+- [x] Smart Automatic Chicken Coop Fan
+
+## Installation
+
+1. Install HACS - [Instructions](https://www.hacs.xyz/docs/use/download/download/)
+2. Add the custom repo to your HACS Store - [Instructions](https://www.hacs.xyz/docs/faq/custom_repositories/)
+3. Add the integration to Home Assistant by searching for "Omlet Smart Coop" in the HACS Store
+4. Configure the integration by going to Settings -> Devices and Services -> Add integration
+5. Enter your [API Key](#api-key)
+6. Enjoy
+
+
 ## Configuration
 
 ### API Key
@@ -23,12 +38,5 @@ Create a webhook
 2. The URL will be [your hostname]**/api/webhook/omlet_smart_coop**
 3. Select all the events you want to track.
 4. Webhook token is mandatory but not used, any value will suffice.
-
-
-## In Progress
-
-- [ ] Add more sensors
-- [ ] Add actions for configuration of modes and polling etc.
-- [ ] Anything with groups
 
 Enjoy!
