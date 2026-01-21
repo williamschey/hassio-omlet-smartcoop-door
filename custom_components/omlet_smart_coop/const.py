@@ -24,6 +24,7 @@ PLATFORMS = [
     Platform.SENSOR,
     Platform.SWITCH,
     Platform.TIME,
+    Platform.FAN,
 ]
 WEBHOOK_ID_KEY = "webhook_id"
 WEBHOOK_TOKEN = "webhook_token"

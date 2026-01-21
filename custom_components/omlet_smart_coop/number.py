@@ -6,7 +6,7 @@ from smartcoop.api.models import Device
 
 from homeassistant.components.number import NumberEntity
 from homeassistant.components.number.const import NumberMode
-from homeassistant.const import LIGHT_LUX, UnitOfTime
+from homeassistant.const import LIGHT_LUX, UnitOfTime, UnitOfTemperature
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import Entity, EntityCategory
 
@@ -22,9 +22,15 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
 
     numberInputs = []
     for device in coordinator.data.values():
-        numberInputs.append(CoopOpenLightLevelInput(device, coordinator))
-        numberInputs.append(CoopCloseLightLevelInput(device, coordinator))
-        numberInputs.append(CoopPollTimeInput(device, coordinator))
+        if device.deviceType == "Autodoor":
+            numberInputs.append(CoopPollTimeInput(device, coordinator))
+            numberInputs.append(CoopOpenLightLevelInput(device, coordinator))
+            numberInputs.append(CoopCloseLightLevelInput(device, coordinator))
+            
+        if device.deviceType == "Fan":
+            numberInputs.append(CoopFanTemperatureInput(device, coordinator, True)) # Temp On
+            numberInputs.append(CoopFanTemperatureInput(device, coordinator, False)) # Temp Off
+            
     async_add_entities(numberInputs)
 
 class CoopNumberInput(OmletBaseEntity, NumberEntity):
@@ -119,3 +125,34 @@ class CoopPollTimeInput(CoopNumberInput):
 
     def _patch_config(self, device: Device, pollTime: int):
         device.configuration.general.pollFreq = pollTime
+
+
+class CoopFanTemperatureInput(CoopNumberInput):
+    """Representation of a Smart Coop fan temperature input."""
+    _attr_unit_of_measurement = UnitOfTemperature.CELSIUS
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_mode = NumberMode.BOX
+    _attr_native_min_value = 0
+    _attr_native_max_value = 50
+    _attr_native_step = 1
+
+    def __init__(self, device: Device, coordinator, is_on_temp: bool) -> None:
+        """Initialize the device."""
+        self._is_on_temp = is_on_temp
+        type_str = "On" if is_on_temp else "Off"
+        self._attr_name = f"{device.name} Temperature {type_str}"
+        key = f"temp_{type_str.lower()}"
+        super().__init__(device, coordinator, key)
+
+    @callback
+    def _update_attr(self, device: Device):
+        if self._is_on_temp:
+            self._attr_native_value = device.configuration.fan.tempOn
+        else:
+            self._attr_native_value = device.configuration.fan.tempOff
+
+    def _patch_config(self, device: Device, value: int):
+        if self._is_on_temp:
+            device.configuration.fan.tempOn = value
+        else:
+            device.configuration.fan.tempOff = value

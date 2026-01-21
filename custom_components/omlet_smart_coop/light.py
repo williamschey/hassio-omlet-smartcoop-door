@@ -16,7 +16,11 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
     """Set up Omlet Smart Coop light."""
     coordinator = hass.data[DOMAIN][entry.entry_id]
 
-    lights = [CoopLight(device, coordinator) for device in coordinator.data.values()]
+    lights = [
+        CoopLight(device, coordinator)
+        for device in coordinator.data.values()
+        if device.deviceType == "Autodoor"
+    ]
     async_add_entities(lights)
 
 

@@ -72,6 +72,13 @@ async def async_handle_webhook(hass: HomeAssistant, webhook_id: str, request):
         # Dispatch the event to entities
         async_dispatcher_send(hass, WEBHOOK_EVENT, data)
 
+
     except Exception as e:
         _LOGGER.error("Error handling webhook: %s", e)
         raise
+
+async def async_remove_config_entry_device(
+    hass: HomeAssistant, config_entry: ConfigEntry, device_entry
+) -> bool:
+    """Remove a config entry from a device."""
+    return True

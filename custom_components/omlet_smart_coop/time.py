@@ -18,10 +18,17 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
 
     timeInputs = []
     for device in coordinator.data.values():
-        timeInputs.append(CoopOpenTimeInput(device, coordinator))
-        timeInputs.append(CoopCloseTimeInput(device, coordinator))
-        timeInputs.append(CoopOvernightSleepStartInput(device, coordinator))
-        timeInputs.append(CoopOvernightSleepEndInput(device, coordinator))
+        if device.deviceType == "Autodoor":
+            timeInputs.append(CoopOvernightSleepStartInput(device, coordinator))
+            timeInputs.append(CoopOvernightSleepEndInput(device, coordinator))
+            timeInputs.append(CoopOpenTimeInput(device, coordinator))
+            timeInputs.append(CoopCloseTimeInput(device, coordinator))
+        
+        if device.deviceType == "Fan":
+            for i in range(1, 5):
+                timeInputs.append(CoopTimeScheduleInput(device, coordinator, i, True)) # On Time
+                timeInputs.append(CoopTimeScheduleInput(device, coordinator, i, False)) # Off Time
+                
     async_add_entities(timeInputs)
 
 
@@ -113,3 +120,29 @@ class CoopOvernightSleepEndInput(CoopTimeInput):
 
     def _patch_config(self, device: Device, strTime):
         device.configuration.general.overnightSleepEnd = strTime
+
+
+class CoopTimeScheduleInput(CoopTimeInput):
+    """Representation of a Smart Coop Schedule Time input entity."""
+    _attr_entity_category = EntityCategory.CONFIG
+
+    def __init__(self, device: Device, coordinator, index: int, is_on_time: bool) -> None:
+        """Initialize the device."""
+        self._index = index
+        self._is_on_time = is_on_time
+        
+        type_str = "On" if is_on_time else "Off"
+        self._attr_name = f"{device.name} Time {type_str} {index}"
+        key = f"time_{type_str.lower()}_{index}"
+        super().__init__(device, coordinator, key)
+
+    @callback
+    def _update_attr(self, device: Device):
+        type_str = "On" if self._is_on_time else "Off"
+        attr_name = f"time{type_str}{self._index}"
+        self._attr_state = getattr(device.configuration.fan, attr_name)
+
+    def _patch_config(self, device: Device, strTime):
+        type_str = "On" if self._is_on_time else "Off"
+        attr_name = f"time{type_str}{self._index}"
+        setattr(device.configuration.fan, attr_name, strTime)
