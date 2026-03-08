@@ -23,7 +23,7 @@
     },
     "connectivity": {
       "wifiStrength": -41,
-      "ssid": "AntJen2",
+      "ssid": "Example WiFi",
       "connected": true
     },
     "fan": {

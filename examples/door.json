@@ -28,7 +28,7 @@
         },
         "connectivity": {
             "wifiStrength": -46,
-            "ssid": "47 Rachael",
+            "ssid": "Example WiFi",
             "connected": true
         },
         "door": {

@@ -45,6 +45,9 @@ class CoopNumberInput(OmletBaseEntity, NumberEntity):
         device = self.coordinator.data[self.device_id]
         iVal = int(value)
 
+        if self._attr_native_value == value:
+            return
+
         self._patch_config(device, value)
         await self.coordinator.patch_config(device)
 

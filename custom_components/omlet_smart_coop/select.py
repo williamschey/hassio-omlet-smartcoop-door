@@ -49,6 +49,9 @@ class CoopOpenMode(OmletBaseEntity, SelectEntity):
     async def async_select_option(self, option: str) -> None:
         """Handle the selection of a new option."""
         if option in self._attr_options:
+            if option == self._attr_current_option:
+                return
+
             # Retrieve the latest device data
             device = self.coordinator.data[self.device_id]
 
@@ -78,6 +81,9 @@ class CoopCloseMode(OmletBaseEntity, SelectEntity):
     async def async_select_option(self, option: str) -> None:
         """Handle the selection of a new option."""
         if option in self._attr_options:
+            if option == self._attr_current_option:
+                return
+
             # Retrieve the latest device data
             device = self.coordinator.data[self.device_id]
 
@@ -85,6 +91,7 @@ class CoopCloseMode(OmletBaseEntity, SelectEntity):
             device.configuration.door.closeMode = option
             await self.coordinator.patch_config(device)
 
+            self._attr_current_option = option
             self.async_write_ha_state()
 
 
@@ -114,6 +121,9 @@ class CoopFanSpeedSelect(OmletBaseEntity, SelectEntity):
     async def async_select_option(self, option: str) -> None:
         """Handle the selection of a new option."""
         if option in self._attr_options:
+            if option == self._attr_current_option:
+                return
+
             device = self.coordinator.data[self.device_id]
             speed = self.SPEED_MAP[option]
             

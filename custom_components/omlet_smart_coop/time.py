@@ -44,10 +44,18 @@ class CoopTimeInput(OmletBaseEntity, Entity):
         device = self.coordinator.data[self.device_id]
 
         str_value = value.strftime("%H:%M")
+        
+        current_state = self._attr_state
+        if hasattr(current_state, "strftime"):
+            current_state = current_state.strftime("%H:%M")
+            
+        if current_state == str_value:
+            return
+
         self._patch_config(device, str_value)
         await self.coordinator.patch_config(device)
 
-        self._attr_state = value
+        self._attr_state = str_value
         self.async_write_ha_state()
 
     @abstractmethod

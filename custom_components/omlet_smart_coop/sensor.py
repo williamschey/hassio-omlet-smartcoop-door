@@ -35,6 +35,7 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
         sensors.append(CoopWifiStrength(device, coordinator))
         sensors.append(CoopUpdateTime(device, coordinator))
         sensors.append(CoopNextUpdateTime(device, coordinator))
+        sensors.append(CoopLastConnected(device, coordinator))
         
         if device.deviceType == "Autodoor":
             sensors.append(CoopPollingInterval(device, coordinator))
@@ -101,6 +102,26 @@ class CoopUpdateTime(OmletBaseEntity, SensorEntity):
     @callback
     def _update_attr(self, device: Device) -> None:
         last_time = device.configuration.general.datetime
+        if isinstance(last_time, str):
+            strippedTime = datetime.strptime(last_time[:-6], "%Y-%m-%dT%H:%M:%S")
+            self._attr_native_value = dt_util.as_local(strippedTime)
+
+
+class CoopLastConnected(OmletBaseEntity, SensorEntity):
+    """Representation of a Smart Coop last connected time."""
+
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_icon = "mdi:clock-check-outline"
+
+    def __init__(self, device, coordinator: CoopCoordinator) -> None:
+        """Initialize the device."""
+        self._attr_name = f"{device.name} Last Connected"
+        super().__init__(device, coordinator, "last_connected")
+
+    @callback
+    def _update_attr(self, device: Device) -> None:
+        last_time = getattr(device, "lastConnected", None)
         if isinstance(last_time, str):
             strippedTime = datetime.strptime(last_time[:-6], "%Y-%m-%dT%H:%M:%S")
             self._attr_native_value = dt_util.as_local(strippedTime)
