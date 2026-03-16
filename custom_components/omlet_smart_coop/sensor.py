@@ -10,7 +10,6 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.const import (
-    LIGHT_LUX,
     PERCENTAGE,
     SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
     STATE_UNAVAILABLE,
@@ -180,7 +179,7 @@ class CoopLightLevel(OmletBaseEntity, SensorEntity):
 
     _attr_device_class = SensorDeviceClass.ILLUMINANCE
     _attr_state_class = SensorStateClass.MEASUREMENT
-    _attr_native_unit_of_measurement = LIGHT_LUX
+    _attr_native_unit_of_measurement = PERCENTAGE
 
     def __init__(self, device, coordinator: CoopCoordinator) -> None:
         """Initialize the device."""
