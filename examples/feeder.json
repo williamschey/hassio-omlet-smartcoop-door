@@ -1,0 +1,159 @@
+{
+  "deviceId": "redacted",
+  "actions": [
+    {
+      "actionName": "close",
+      "description": "Close Feeder",
+      "actionValue": "close",
+      "pendingValue": "closepending",
+      "callback": null,
+      "url": "/device/K5v6CNyXKqEDnc1K/action/close"
+    },
+    {
+      "actionName": "factory_reset",
+      "description": "Factory Reset",
+      "actionValue": "factoryReset",
+      "pendingValue": null,
+      "callback": null,
+      "url": "/device/K5v6CNyXKqEDnc1K/action/factory_reset"
+    },
+    {
+      "actionName": "firmware_update",
+      "description": "Check for Firmware Update",
+      "actionValue": "ota",
+      "pendingValue": null,
+      "callback": null,
+      "url": "/device/K5v6CNyXKqEDnc1K/action/firmware_update"
+    },
+    {
+      "actionName": "open",
+      "description": "Open Feeder",
+      "actionValue": "open",
+      "pendingValue": "openpending",
+      "callback": null,
+      "url": "/device/K5v6CNyXKqEDnc1K/action/open"
+    },
+    {
+      "actionName": "restart",
+      "description": "Restart",
+      "actionValue": "restart",
+      "pendingValue": null,
+      "callback": null,
+      "url": "/device/K5v6CNyXKqEDnc1K/action/restart"
+    },
+    {
+      "actionName": "setup_wifi",
+      "description": "Reset Wifi Credentials",
+      "actionValue": "setupWiFi",
+      "pendingValue": null,
+      "callback": null,
+      "url": "/device/K5v6CNyXKqEDnc1K/action/setup_wifi"
+    }
+  ],
+  "batteryCount": 0,
+  "bleOnly": 0,
+  "configuration": {
+    "feeder": {
+      "mode": "time",
+      "openLightLevel": 27,
+      "closeLightLevel": 6,
+      "openTime1": "07:00",
+      "closeTime1": "18:00",
+      "openTime2": "00:00",
+      "closeTime2": "00:00",
+      "openTime3": "00:00",
+      "closeTime3": "00:00",
+      "openTime4": "00:00",
+      "closeTime4": "00:00",
+      "colour": "sage"
+    },
+    "connectivity": {
+      "wifiState": "on"
+    },
+    "general": {
+      "datetime": "2026-03-19T16:34:21+10:00",
+      "timezone": "Australia/Brisbane",
+      "updateFrequency": 86400,
+      "language": "en-AU",
+      "stayAliveTime": 10,
+      "statusUpdatePeriod": 21600,
+      "pollFreq": 3600,
+      "overnightSleepEnable": true,
+      "overnightSleepStart": "21:00",
+      "overnightSleepEnd": "05:00"
+    }
+  },
+  "deviceSerial": "redacted",
+  "deviceType": "Feeder",
+  "deviceTypeId": 6,
+  "groupId": "redacted",
+  "lastConnected": "2026-03-19T06:34:39.000000Z",
+  "name": "A's feeder",
+  "nextConnection": "2026-03-19T07:34:39.000000Z",
+  "overdueConnection": 0,
+  "state": {
+    "general": {
+      "firmwareVersionCurrent": "1.1.29-1780cd6f",
+      "firmwareLastCheck": "2026-03-19T15:43:53+10:00",
+      "batteryLevel": 100,
+      "powerSource": "battery",
+      "firmwareVersionPrevious": "1.1.25-37475a0a",
+      "uptime": 97
+    },
+    "connectivity": {
+      "wifiStrength": -40,
+      "ssid": "redacted",
+      "connected": false
+    },
+    "feeder": {
+      "state": "open",
+      "lastOpenTime": "2026-03-19T16:34:24+10:00",
+      "lastCloseTime": "2026-03-19T16:24:22+10:00",
+      "fault": "none",
+      "feedLevel": 17,
+      "lightLevel": 10,
+      "mode": "time"
+    }
+  },
+  "remainingDays": 2,
+  "meta": {
+    "feed_type": "mash",
+    "large_chicken_count": "0",
+    "medium_chicken_count": "0",
+    "small_chicken_count": "6"
+  },
+  "metadata": [
+    {
+      "device_metadata_id": 14148,
+      "deviceId": "redacted",
+      "key": "feed_type",
+      "value": "mash",
+      "created_at": "2026-03-19T05:40:47.000000Z",
+      "updated_at": "2026-03-19T05:40:47.000000Z"
+    },
+    {
+      "device_metadata_id": 14151,
+      "deviceId": "redacted",
+      "key": "large_chicken_count",
+      "value": "0",
+      "created_at": "2026-03-19T05:40:47.000000Z",
+      "updated_at": "2026-03-19T05:40:47.000000Z"
+    },
+    {
+      "device_metadata_id": 14150,
+      "deviceId": "K5v6FNyXKqEDnc1K",
+      "key": "medium_chicken_count",
+      "value": "0",
+      "created_at": "2026-03-19T05:40:47.000000Z",
+      "updated_at": "2026-03-19T05:40:47.000000Z"
+    },
+    {
+      "device_metadata_id": 14149,
+      "deviceId": "redacted",
+      "key": "small_chicken_count",
+      "value": "6",
+      "created_at": "2026-03-19T05:40:47.000000Z",
+      "updated_at": "2026-03-19T05:40:47.000000Z"
+    }
+  ]
+}

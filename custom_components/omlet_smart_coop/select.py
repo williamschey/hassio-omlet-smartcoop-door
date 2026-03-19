@@ -6,7 +6,7 @@ from homeassistant.components.select import SelectEntity
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityCategory
 
-from .const import DOMAIN, DOOR_MODES
+from .const import DOMAIN, DOOR_MODES, FEEDER_MODES
 from .coordinator import CoopCoordinator
 from .entity import OmletBaseEntity
 
@@ -27,6 +27,9 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
             selects.append(CoopTempSpeedSelect(device, coordinator))
             for i in range(1, 5):
                 selects.append(CoopTimeSpeedSelect(device, coordinator, i))
+                
+        if device.deviceType == "Feeder":
+            selects.append(FeederModeSelect(device, coordinator))
                 
     async_add_entities(selects)
 
@@ -169,3 +172,32 @@ class CoopTimeSpeedSelect(CoopFanSpeedSelect):
 
     def _set_speed_in_config(self, device: Device, speed: int):
         setattr(device.configuration.fan, f"timeSpeed{self._index}", speed)
+
+
+class FeederModeSelect(OmletBaseEntity, SelectEntity):
+    """Representation of a Smart Coop feeder mode select entity."""
+    _attr_entity_category = EntityCategory.CONFIG
+
+    _attr_options = [e.value for e in FEEDER_MODES]
+
+    def __init__(self, device, coordinator: CoopCoordinator) -> None:
+        """Initialize the device."""
+        self._attr_name = f"{device.name} Mode"
+        super().__init__(device, coordinator, "feeder_mode")
+
+    @callback
+    def _update_attr(self, device: Device) -> None:
+        self._attr_current_option = device.configuration.feeder.mode
+
+    async def async_select_option(self, option: str) -> None:
+        """Handle the selection of a new option."""
+        if option in self._attr_options:
+            if option == self._attr_current_option:
+                return
+
+            device = self.coordinator.data[self.device_id]
+            device.configuration.feeder.mode = option
+            await self.coordinator.patch_config(device)
+
+            self._attr_current_option = option
+            self.async_write_ha_state()

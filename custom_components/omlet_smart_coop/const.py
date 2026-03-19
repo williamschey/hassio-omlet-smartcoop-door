@@ -13,6 +13,13 @@ class DOOR_MODES(str, Enum):
     MANUAL = "manual"
 
 
+class FEEDER_MODES(str, Enum):
+    """Enumeration of feeder modes."""
+
+    LIGHT = "light"
+    TIME = "time"
+
+
 DOMAIN = "omlet_smart_coop"
 API_KEY = "api_key"
 PLATFORMS = [

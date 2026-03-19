@@ -30,6 +30,10 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
         if device.deviceType == "Fan":
             numberInputs.append(CoopFanTemperatureInput(device, coordinator, True)) # Temp On
             numberInputs.append(CoopFanTemperatureInput(device, coordinator, False)) # Temp Off
+
+        if device.deviceType == "Feeder":
+            numberInputs.append(FeederOpenLightLevelInput(device, coordinator))
+            numberInputs.append(FeederCloseLightLevelInput(device, coordinator))
             
     async_add_entities(numberInputs)
 

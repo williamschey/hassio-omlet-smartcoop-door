@@ -28,6 +28,11 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
             for i in range(1, 5):
                 timeInputs.append(CoopTimeScheduleInput(device, coordinator, i, True)) # On Time
                 timeInputs.append(CoopTimeScheduleInput(device, coordinator, i, False)) # Off Time
+
+        if device.deviceType == "Feeder":
+            for i in range(1, 5):
+                timeInputs.append(FeederTimeScheduleInput(device, coordinator, i, True))  # Open Time
+                timeInputs.append(FeederTimeScheduleInput(device, coordinator, i, False))  # Close Time
                 
     async_add_entities(timeInputs)
 

@@ -47,6 +47,13 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
             sensors.append(CoopFanSpeed(device, coordinator))
             sensors.append(CoopFanTemperature(device, coordinator))
             sensors.append(CoopFanHumidity(device, coordinator))
+
+        if device.deviceType == "Feeder":
+            sensors.append(FeederFeedLevel(device, coordinator))
+            sensors.append(FeederLightLevel(device, coordinator))
+            sensors.append(FeederLastOpenTime(device, coordinator))
+            sensors.append(FeederLastCloseTime(device, coordinator))
+            sensors.append(FeederFault(device, coordinator))
             
     async_add_entities(sensors)
 

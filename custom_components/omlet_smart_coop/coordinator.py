@@ -34,7 +34,7 @@ class CoopCoordinator(DataUpdateCoordinator[dict[str, Device]]):
 
     async def _async_update_data(self) -> dict[str, Device]:
         devices = await self._api.get_devices()
-        return {d.deviceId: d for d in devices if d.deviceType in ("Autodoor", "Fan")}
+        return {d.deviceId: d for d in devices if d.deviceType in ("Autodoor", "Fan", "Feeder")}
 
     async def perform_action(self, device_id, key):
         """Perform an action on a device."""
