@@ -1,83 +1,5 @@
 {
     "deviceId": "redacted",
-    "deviceSerial": "redacted",
-    "deviceTypeId": 1,
-    "groupId": "redacted",
-    "name": "Chicken Coop",
-    "deletePending": 0,
-    "lastConnected": "2025-11-27T15:04:46+00:00",
-    "nextConnection": null,
-    "overdueConnection": 0,
-    "batteryCount": 0,
-    "batteryWarned": 0,
-    "bleOnly": 0,
-    "mqttServerId": 1,
-    "state": {
-        "light": {
-            "state": "off"
-        },
-        "general": {
-            "firmwareVersionCurrent": "1.0.53-985ecc8d",
-            "firmwareLastCheck": "2025-11-30T02:31:35+10:00",
-            "batteryLevel": 100,
-            "powerSource": "external",
-            "displayLine1": "                ",
-            "displayLine2": "                ",
-            "firmwareVersionPrevious": "1.0.51-4efeeb2e",
-            "uptime": 3005765
-        },
-        "connectivity": {
-            "wifiStrength": -46,
-            "ssid": "Example WiFi",
-            "connected": true
-        },
-        "door": {
-            "state": "open",
-            "lastOpenTime": "2025-11-30T06:44:13+10:00",
-            "lastCloseTime": "2025-11-29T20:20:02+10:00",
-            "fault": "none",
-            "lightLevel": 100
-        }
-    },
-    "configuration": {
-        "door": {
-            "openMode": "time",
-            "openDelay": 0,
-            "openTime": "06:44",
-            "closeMode": "time",
-            "closeDelay": 0,
-            "closeLightLevel": 7,
-            "closeTime": "20:23",
-            "openLightLevel": 27,
-            "doorType": "sliding",
-            "colour": "green",
-            "lightOffset": 3,
-            "temperatureUnit": "C"
-        },
-        "light": {
-            "mode": "auto",
-            "minutesBeforeClose": 5,
-            "maxOnTime": 3,
-            "equipped": 2
-        },
-        "connectivity": {
-            "wifiState": "on"
-        },
-        "general": {
-            "datetime": "2025-11-30T14:13:34+10:00",
-            "timezone": "Australia/Brisbane",
-            "useDst": false,
-            "updateFrequency": 86400,
-            "language": "en",
-            "stayAliveTime": 0,
-            "statusUpdatePeriod": 21600,
-            "pollFreq": 600,
-            "overnightSleepEnable": true,
-            "overnightSleepStart": "21:00",
-            "overnightSleepEnd": "06:00"
-        }
-    },
-    "deviceType": "Autodoor",
     "actions": [
         {
             "actionName": "calibrate",
@@ -168,6 +90,79 @@
             "url": "/device/LyOBaHCK2q19jiOF/action/stop"
         }
     ],
-    "meta": [],
-    "metadata": []
+    "batteryCount": 0,
+    "bleOnly": 0,
+    "configuration": {
+        "door": {
+            "openMode": "time",
+            "openDelay": 0,
+            "openTime": "07:00",
+            "closeMode": "time",
+            "closeDelay": 0,
+            "closeLightLevel": 8,
+            "closeTime": "20:16",
+            "openLightLevel": 27,
+            "doorType": "sliding",
+            "colour": "green",
+            "lightOffset": 3,
+            "temperatureUnit": "C"
+        },
+        "light": {
+            "mode": "auto",
+            "minutesBeforeClose": 5,
+            "maxOnTime": 3,
+            "equipped": 2
+        },
+        "connectivity": {
+            "wifiState": "on"
+        },
+        "general": {
+            "datetime": "2026-03-19T17:41:35+10:00",
+            "timezone": "Australia/Brisbane",
+            "useDst": false,
+            "updateFrequency": 86400,
+            "language": "en",
+            "stayAliveTime": 0,
+            "statusUpdatePeriod": 21600,
+            "pollFreq": 600,
+            "overnightSleepEnable": true,
+            "overnightSleepStart": "21:00",
+            "overnightSleepEnd": "06:00"
+        }
+    },
+    "deviceSerial": "744dbd9e644c",
+    "deviceType": "Autodoor",
+    "deviceTypeId": 1,
+    "groupId": "lEIHqoaShj05p0EP",
+    "lastConnected": "2026-03-18T02:28:42.000000Z",
+    "name": "Chicken Coop",
+    "nextConnection": null,
+    "overdueConnection": 0,
+    "state": {
+        "light": {
+            "state": "off"
+        },
+        "general": {
+            "firmwareVersionCurrent": "1.0.54-f3d53670",
+            "firmwareLastCheck": "2026-03-19T09:38:39+10:00",
+            "batteryLevel": 100,
+            "powerSource": "external",
+            "displayLine1": "                ",
+            "displayLine2": "                ",
+            "firmwareVersionPrevious": "1.0.53-985ecc8d",
+            "uptime": 1580018
+        },
+        "connectivity": {
+            "wifiStrength": -43,
+            "ssid": "47 Rachael",
+            "connected": true
+        },
+        "door": {
+            "state": "open",
+            "lastOpenTime": "2026-03-19T07:00:13+10:00",
+            "lastCloseTime": "2026-03-18T18:22:36+10:00",
+            "fault": "none",
+            "lightLevel": 1
+        }
+    }
 }

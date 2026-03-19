@@ -34,6 +34,7 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
         if device.deviceType == "Feeder":
             numberInputs.append(FeederOpenLightLevelInput(device, coordinator))
             numberInputs.append(FeederCloseLightLevelInput(device, coordinator))
+            numberInputs.append(CoopPollTimeInput(device, coordinator))
             
     async_add_entities(numberInputs)
 
@@ -163,3 +164,31 @@ class CoopFanTemperatureInput(CoopNumberInput):
             device.configuration.fan.tempOn = value
         else:
             device.configuration.fan.tempOff = value
+class FeederOpenLightLevelInput(CoopLightLevelInput):
+    """Representation of a feeder open light level input entity."""
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_mode = NumberMode.BOX
+    def __init__(self, device, coordinator: CoopCoordinator) -> None:
+        self._attr_name = f"{device.name} Open Light Level"
+        super().__init__(device, coordinator, "feeder_open_light_level")
+    @callback
+    def _update_attr(self, device: Device):
+        self._attr_native_value = device.configuration.feeder.openLightLevel
+    def _patch_config(self, device: Device, lightLevel: int):
+        if lightLevel <= device.configuration.feeder.closeLightLevel:
+            raise ValueError("Open light level must be greater than close light level")
+        device.configuration.feeder.openLightLevel = lightLevel
+class FeederCloseLightLevelInput(CoopLightLevelInput):
+    """Representation of a feeder close light level input entity."""
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_mode = NumberMode.BOX
+    def __init__(self, device, coordinator: CoopCoordinator) -> None:
+        self._attr_name = f"{device.name} Close Light Level"
+        super().__init__(device, coordinator, "feeder_close_light_level")
+    @callback
+    def _update_attr(self, device: Device):
+        self._attr_native_value = device.configuration.feeder.closeLightLevel
+    def _patch_config(self, device: Device, lightLevel: int):
+        if lightLevel >= device.configuration.feeder.openLightLevel:
+            raise ValueError("Close light level must be less than open light level")
+        device.configuration.feeder.closeLightLevel = lightLevel

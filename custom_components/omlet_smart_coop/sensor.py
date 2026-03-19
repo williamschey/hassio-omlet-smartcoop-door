@@ -49,6 +49,7 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
             sensors.append(CoopFanHumidity(device, coordinator))
 
         if device.deviceType == "Feeder":
+            sensors.append(CoopBatterySensor(device, coordinator))
             sensors.append(FeederFeedLevel(device, coordinator))
             sensors.append(FeederLightLevel(device, coordinator))
             sensors.append(FeederLastOpenTime(device, coordinator))
@@ -355,3 +356,62 @@ class CoopFanHumidity(OmletBaseEntity, SensorEntity):
     @callback
     def _update_attr(self, device: Device) -> None:
         self._attr_native_value = device.state.fan.humidity
+
+class FeederFeedLevel(OmletBaseEntity, SensorEntity):
+    """Representation of a feeder feed level sensor."""
+    _attr_native_unit_of_measurement = PERCENTAGE
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_icon = "mdi:grain"
+    def __init__(self, device, coordinator: CoopCoordinator) -> None:
+        self._attr_name = f"{device.name} Feed Level"
+        super().__init__(device, coordinator, "feeder_feed_level")
+    @callback
+    def _update_attr(self, device: Device) -> None:
+        self._attr_native_value = device.state.feeder.feedLevel
+class FeederLightLevel(OmletBaseEntity, SensorEntity):
+    """Representation of a feeder light level sensor."""
+    _attr_device_class = SensorDeviceClass.ILLUMINANCE
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = PERCENTAGE
+    def __init__(self, device, coordinator: CoopCoordinator) -> None:
+        self._attr_name = f"{device.name} Light Level"
+        super().__init__(device, coordinator, "feeder_light_level")
+    @callback
+    def _update_attr(self, device: Device) -> None:
+        self._attr_native_value = device.state.feeder.lightLevel
+class FeederLastOpenTime(OmletBaseEntity, SensorEntity):
+    """Representation of a feeder last open time sensor."""
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_icon = "mdi:timer"
+    def __init__(self, device, coordinator: CoopCoordinator) -> None:
+        self._attr_name = f"{device.name} Last Open Time"
+        super().__init__(device, coordinator, "feeder_last_open_time")
+    @callback
+    def _update_attr(self, device: Device) -> None:
+        last_time = device.state.feeder.lastOpenTime
+        if isinstance(last_time, str):
+            strippedTime = datetime.strptime(last_time[:-6], "%Y-%m-%dT%H:%M:%S")
+            self._attr_native_value = dt_util.as_local(strippedTime)
+class FeederLastCloseTime(OmletBaseEntity, SensorEntity):
+    """Representation of a feeder last close time sensor."""
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_icon = "mdi:timer"
+    def __init__(self, device, coordinator: CoopCoordinator) -> None:
+        self._attr_name = f"{device.name} Last Close Time"
+        super().__init__(device, coordinator, "feeder_last_close_time")
+    @callback
+    def _update_attr(self, device: Device) -> None:
+        last_time = device.state.feeder.lastCloseTime
+        if isinstance(last_time, str):
+            strippedTime = datetime.strptime(last_time[:-6], "%Y-%m-%dT%H:%M:%S")
+            self._attr_native_value = dt_util.as_local(strippedTime)
+class FeederFault(OmletBaseEntity, SensorEntity):
+    """Representation of a feeder fault state sensor."""
+    def __init__(self, device, coordinator: CoopCoordinator) -> None:
+        self._attr_name = f"{device.name} Feeder Fault"
+        super().__init__(device, coordinator, "feeder_fault")
+    @callback
+    def _update_attr(self, device: Device) -> None:
+        self._attr_native_value = device.state.feeder.fault

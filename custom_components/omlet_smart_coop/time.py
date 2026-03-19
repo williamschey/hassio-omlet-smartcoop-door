@@ -33,6 +33,8 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
             for i in range(1, 5):
                 timeInputs.append(FeederTimeScheduleInput(device, coordinator, i, True))  # Open Time
                 timeInputs.append(FeederTimeScheduleInput(device, coordinator, i, False))  # Close Time
+            timeInputs.append(CoopOvernightSleepStartInput(device, coordinator))
+            timeInputs.append(CoopOvernightSleepEndInput(device, coordinator))
                 
     async_add_entities(timeInputs)
 
@@ -159,3 +161,20 @@ class CoopTimeScheduleInput(CoopTimeInput):
         type_str = "On" if self._is_on_time else "Off"
         attr_name = f"time{type_str}{self._index}"
         setattr(device.configuration.fan, attr_name, strTime)
+class FeederTimeScheduleInput(CoopTimeInput):
+    """Representation of a Feeder time schedule input entity."""
+    _attr_entity_category = EntityCategory.CONFIG
+    def __init__(self, device, coordinator, index: int, is_open_time: bool) -> None:
+        self._index = index
+        self._is_open_time = is_open_time
+        type_str = "Open" if is_open_time else "Close"
+        self._attr_name = f"{device.name} {type_str} Time {index}"
+        key = f"feeder_{type_str.lower()}_time_{index}"
+        super().__init__(device, coordinator, key)
+    @callback
+    def _update_attr(self, device: Device):
+        attr_name = f"{'open' if self._is_open_time else 'close'}Time{self._index}"
+        self._attr_state = getattr(device.configuration.feeder, attr_name)
+    def _patch_config(self, device: Device, strTime):
+        attr_name = f"{'open' if self._is_open_time else 'close'}Time{self._index}"
+        setattr(device.configuration.feeder, attr_name, strTime)

@@ -22,8 +22,8 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
     coordinator = hass.data[DOMAIN][entry.entry_id]
 
     sensors = []
-    for device in coordinator.data.values():        
-        if device.deviceType == "Autodoor":
+    for device in coordinator.data.values():
+        if device.deviceType in ("Autodoor", "Feeder"):
             sensors.append(CoopOvernightSleepEnable(device, coordinator))
     async_add_entities(sensors)
 
