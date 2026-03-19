@@ -12,5 +12,5 @@
   "requirements": [
     "smartcoop-python-sdk==1.1.7"
   ],
-  "version": "1.0.3"
+  "version": "1.0.4"
 }
