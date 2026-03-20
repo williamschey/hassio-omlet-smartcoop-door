@@ -8,6 +8,7 @@ The Omlet server is **polled**, using their official API, to get the latest stat
 
 - [x] Smart Automatic Chicken Coop Door
 - [x] Smart Automatic Chicken Coop Fan
+- [x] Smart Automatic Chicken Coop Feeder
 
 ## Installation
 
