@@ -185,7 +185,6 @@ class CoopNextUpdateTime(OmletBaseEntity, SensorEntity):
 class CoopLightLevel(OmletBaseEntity, SensorEntity):
     """Representation of a Smart Coop last update time."""
 
-    _attr_device_class = SensorDeviceClass.ILLUMINANCE
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = PERCENTAGE
 
@@ -370,7 +369,6 @@ class FeederFeedLevel(OmletBaseEntity, SensorEntity):
         self._attr_native_value = device.state.feeder.feedLevel
 class FeederLightLevel(OmletBaseEntity, SensorEntity):
     """Representation of a feeder light level sensor."""
-    _attr_device_class = SensorDeviceClass.ILLUMINANCE
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = PERCENTAGE
     def __init__(self, device, coordinator: CoopCoordinator) -> None:
