@@ -6,7 +6,7 @@ from smartcoop.api.models import Device
 
 from homeassistant.components.number import NumberEntity
 from homeassistant.components.number.const import NumberMode
-from homeassistant.const import LIGHT_LUX, UnitOfTime, UnitOfTemperature
+from homeassistant.const import PERCENTAGE, UnitOfTime, UnitOfTemperature
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import Entity, EntityCategory
 
@@ -66,9 +66,9 @@ class CoopNumberInput(OmletBaseEntity, NumberEntity):
 class CoopLightLevelInput(CoopNumberInput):
     """Representation of a Smart Coop light level input entity."""
 
-    _attr_unit_of_measurement = LIGHT_LUX
+    _attr_unit_of_measurement = PERCENTAGE
     _attr_native_min_value = 0
-    _attr_native_max_value = 99  # This matches what the app permits
+    _attr_native_max_value = 100
     _attr_native_step = 1
 
 class CoopOpenLightLevelInput(CoopLightLevelInput):
