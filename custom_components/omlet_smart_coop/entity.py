@@ -51,3 +51,22 @@ class OmletBaseEntity(CoordinatorEntity[CoopCoordinator]):
     @callback
     def _update_attr(self, device: Device) -> None:
         """Update the state and attributes."""
+
+class OmletOperationalEntity(OmletBaseEntity):
+    """Base class for operational entities that require device connectivity."""
+
+    @property
+    def available(self) -> bool:
+        """Return True if entity is available and device is connected."""
+        if not super().available:
+            return False
+        
+        device = self.coordinator.data.get(self.device_id)
+        if not device or not getattr(device, "state", None):
+            return False
+            
+        connectivity = getattr(device.state, "connectivity", None)
+        if connectivity is None:
+            return True # Fallback if connectivity model isn't present
+            
+        return getattr(connectivity, "connected", True)

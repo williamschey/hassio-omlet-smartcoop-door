@@ -12,7 +12,7 @@ from homeassistant.core import HomeAssistant, callback
 
 from .const import DOMAIN
 from .coordinator import CoopCoordinator
-from .entity import OmletBaseEntity
+from .entity import OmletOperationalEntity
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -31,7 +31,7 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
     async_add_entities(fans)
 
 
-class CoopFan(OmletBaseEntity, FanEntity):
+class CoopFan(OmletOperationalEntity, FanEntity):
     """Representation of the coop fan."""
 
     def __init__(self, device: Device, coordinator: CoopCoordinator) -> None:

@@ -10,7 +10,7 @@ from homeassistant.components.cover import (
 from homeassistant.core import HomeAssistant, callback
 from .const import DOMAIN
 from .coordinator import CoopCoordinator
-from .entity import OmletBaseEntity
+from .entity import OmletOperationalEntity
 async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
     """Set up Omlet Smart Coop cover."""
     coordinator = hass.data[DOMAIN][entry.entry_id]
@@ -21,7 +21,7 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
         if device.deviceType == "Feeder":
             covers.append(FeederCover(device, coordinator))
     async_add_entities(covers)
-class CoopCover(OmletBaseEntity, CoverEntity):
+class CoopCover(OmletOperationalEntity, CoverEntity):
     """Representation of the coop door."""
     _attr_device_class = CoverDeviceClass.DOOR
     _attr_supported_features: CoverEntityFeature = (
@@ -66,7 +66,7 @@ class CoopCover(OmletBaseEntity, CoverEntity):
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:
         return {"raw_state": self.raw_state}
-class FeederCover(OmletBaseEntity, CoverEntity):
+class FeederCover(OmletOperationalEntity, CoverEntity):
     """Representation of the feeder hatch."""
     _attr_device_class = CoverDeviceClass.DOOR
     _attr_supported_features: CoverEntityFeature = (

@@ -9,7 +9,7 @@ from homeassistant.core import HomeAssistant, callback
 
 from .const import DOMAIN
 from .coordinator import CoopCoordinator
-from .entity import OmletBaseEntity
+from .entity import OmletOperationalEntity
 
 
 async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
@@ -24,7 +24,7 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
     async_add_entities(lights)
 
 
-class CoopLight(OmletBaseEntity, LightEntity):
+class CoopLight(OmletOperationalEntity, LightEntity):
     """Representation of the coop light."""
 
     _attr_color_mode = ColorMode.ONOFF
