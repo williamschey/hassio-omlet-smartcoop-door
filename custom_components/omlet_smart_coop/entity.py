@@ -52,21 +52,27 @@ class OmletBaseEntity(CoordinatorEntity[CoopCoordinator]):
     def _update_attr(self, device: Device) -> None:
         """Update the state and attributes."""
 
+
 class OmletOperationalEntity(OmletBaseEntity):
-    """Base class for operational entities that require device connectivity."""
+    """Base class for operational entities with power-aware availability."""
 
     @property
     def available(self) -> bool:
-        """Return True if entity is available and device is connected."""
+        """Return True if data is available and the device is connected or on battery."""
         if not super().available:
             return False
-        
+
         device = self.coordinator.data.get(self.device_id)
         if not device or not getattr(device, "state", None):
             return False
-            
+
+        # Battery-powered devices sleep between connections.
+        general = getattr(device.state, "general", None)
+        if getattr(general, "powerSource", None) == "battery":
+            return True
+
         connectivity = getattr(device.state, "connectivity", None)
         if connectivity is None:
-            return True # Fallback if connectivity model isn't present
-            
+            return True  # Fallback if connectivity model isn't present
+
         return getattr(connectivity, "connected", True)

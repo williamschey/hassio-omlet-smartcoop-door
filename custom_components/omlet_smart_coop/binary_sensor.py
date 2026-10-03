@@ -22,7 +22,7 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
     for device in coordinator.data.values():
         if device.deviceType != "Feeder":
             sensors.append(CoopPowerConnection(device, coordinator))
-            sensors.append(CoopConnectivity(device, coordinator))
+        sensors.append(CoopConnectivity(device, coordinator))
 
     async_add_entities(sensors)
 
