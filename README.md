@@ -10,6 +10,12 @@ The Omlet server is **polled**, using their official API, to get the latest stat
 - [x] Smart Automatic Chicken Coop Fan
 - [x] Smart Automatic Chicken Coop Feeder
 
+## Device availability
+
+Battery-powered devices sleep between connections. Their controls remain available using the last reported state when `state.general.powerSource` is `battery`, even while disconnected. Failed API updates or missing device state still make the controls unavailable. Devices using external power still require a connection.
+
+Every device, including the feeder, has a **Connected** diagnostic sensor showing its actual connection status independently of control availability.
+
 ## Installation
 
 1. Install HACS - [Instructions](https://www.hacs.xyz/docs/use/download/download/)
