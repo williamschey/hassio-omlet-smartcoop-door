@@ -34,6 +34,7 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
         sensors.append(CoopWifiStrength(device, coordinator))
         sensors.append(CoopUpdateTime(device, coordinator))
         sensors.append(CoopNextUpdateTime(device, coordinator))
+        sensors.append(CoopPowerSource(device, coordinator))
         
         if device.deviceType == "Autodoor":
             sensors.append(CoopPollingInterval(device, coordinator))
@@ -57,6 +58,22 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
             sensors.append(FeederFault(device, coordinator))
             
     async_add_entities(sensors)
+
+
+class CoopPowerSource(OmletBaseEntity, SensorEntity):
+    """Representation of the power source reported by a Smart Coop device."""
+
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_icon = "mdi:power-plug"
+
+    def __init__(self, device, coordinator: CoopCoordinator) -> None:
+        """Initialize the device."""
+        self._attr_name = f"{device.name} Power Source"
+        super().__init__(device, coordinator, "power_source")
+
+    @callback
+    def _update_attr(self, device: Device) -> None:
+        self._attr_native_value = device.state.general.powerSource
 
 
 class CoopBatterySensor(OmletBaseEntity, SensorEntity):

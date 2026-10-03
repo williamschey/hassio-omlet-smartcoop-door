@@ -14,7 +14,7 @@ from unittest.mock import Mock, patch
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.entity import Entity, EntityCategory
 from smartcoop.api.models import Device
 
 from custom_components.omlet_smart_coop.binary_sensor import (
@@ -27,6 +27,10 @@ from custom_components.omlet_smart_coop.coordinator import CoopCoordinator
 from custom_components.omlet_smart_coop.cover import CoopCover, FeederCover
 from custom_components.omlet_smart_coop.fan import CoopFan
 from custom_components.omlet_smart_coop.light import CoopLight
+from custom_components.omlet_smart_coop.sensor import (
+    CoopPowerSource,
+    async_setup_entry as async_setup_sensor_entry,
+)
 
 EXAMPLES = Path(__file__).resolve().parents[1] / "examples"
 OPERATIONAL_ENTITIES = (
@@ -53,6 +57,14 @@ def make_coordinator(device: Device) -> Mock:
 
 
 class OperationalAvailabilityTests(unittest.TestCase):
+    def test_sleeping_feeder_from_api_is_available(self) -> None:
+        device = load_device("feeder")
+        self.assertEqual(device.state.general.powerSource, "battery")
+        self.assertFalse(device.state.connectivity.connected)
+
+        entity = FeederCover(device, make_coordinator(device))
+        self.assertTrue(entity.available)
+
     def test_availability_by_power_connection_and_update_status(self) -> None:
         for (entity_type, example), power, connected, update_success in product(
             OPERATIONAL_ENTITIES,
@@ -155,3 +167,48 @@ class ConnectivitySensorTests(unittest.IsolatedAsyncioTestCase):
 
                 coordinator.last_update_success = False
                 self.assertFalse(sensor.available)
+
+
+class PowerSourceSensorTests(unittest.IsolatedAsyncioTestCase):
+    async def test_power_source_sensor_for_every_device_type(self) -> None:
+        for example, connected in product(("door", "feeder", "fan"), (False, True)):
+            with self.subTest(example=example, connected=connected):
+                device = load_device(example)
+                device.state.connectivity.connected = connected
+                coordinator = make_coordinator(device)
+                entry = Mock(spec=ConfigEntry, entry_id="test-entry")
+                hass = Mock(
+                    spec=HomeAssistant,
+                    data={DOMAIN: {entry.entry_id: coordinator}},
+                )
+                async_add_entities = Mock()
+
+                await async_setup_sensor_entry(hass, entry, async_add_entities)
+
+                async_add_entities.assert_called_once()
+                sensors = [
+                    sensor
+                    for sensor in async_add_entities.call_args.args[0]
+                    if isinstance(sensor, CoopPowerSource)
+                ]
+                self.assertEqual(len(sensors), 1)
+                sensor = sensors[0]
+                self.assertEqual(sensor.unique_id, f"{device.deviceId}_power_source")
+                self.assertEqual(sensor.name, f"{device.name} Power Source")
+                self.assertEqual(sensor.entity_category, EntityCategory.DIAGNOSTIC)
+                self.assertEqual(sensor.native_value, device.state.general.powerSource)
+                self.assertTrue(sensor.available)
+
+                for power in ("battery", "external", "unexpected"):
+                    updated_device = deepcopy(device)
+                    updated_device.state.general.powerSource = power
+                    coordinator.data[device.deviceId] = updated_device
+                    with patch.object(Entity, "async_write_ha_state"):
+                        sensor._handle_coordinator_update()
+                    self.assertEqual(sensor.native_value, power)
+                    self.assertTrue(sensor.available)
+
+                coordinator.last_update_success = False
+                self.assertFalse(sensor.available)
+                coordinator.last_update_success = True
+                self.assertTrue(sensor.available)

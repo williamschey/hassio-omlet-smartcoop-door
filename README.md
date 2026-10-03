@@ -14,7 +14,7 @@ The Omlet server is **polled**, using their official API, to get the latest stat
 
 Battery-powered devices sleep between connections. Their controls remain available using the last reported state when `state.general.powerSource` is `battery`, even while disconnected. Failed API updates or missing device state still make the controls unavailable. Devices using external power still require a connection.
 
-Every device, including the feeder, has a **Connected** diagnostic sensor showing its actual connection status independently of control availability.
+Every device, including the feeder, has a **Connected** diagnostic sensor showing its actual connection status independently of control availability. A **Power Source** diagnostic sensor exposes the exact `state.general.powerSource` value reported by the API (such as `battery` or `external`) for doors, fans, and feeders. This sensor remains available while the device is disconnected, provided coordinator updates succeed.
 
 ## Installation
 
