@@ -68,7 +68,7 @@ class OmletOperationalEntity(OmletBaseEntity):
 
         # Battery-powered devices sleep between connections.
         general = getattr(device.state, "general", None)
-        if getattr(general, "powerSource", None) == "battery":
+        if getattr(general, "powerSource", None) != "external":
             return True
 
         connectivity = getattr(device.state, "connectivity", None)
