@@ -9,6 +9,7 @@ from homeassistant.components.fan import (
     FanEntityFeature,
 )
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN
 from .coordinator import CoopCoordinator
@@ -80,7 +81,7 @@ class CoopFan(OmletOperationalEntity, FanEntity):
             # Check schedules
             # Structure: timeOn1 (HH:MM), timeOff1 (HH:MM), timeSpeed1 (int)
             import datetime
-            now = datetime.datetime.now().time()
+            now = dt_util.now().time()
             
             # Helper to parse time string "HH:MM"
             def parse_time(t_str):

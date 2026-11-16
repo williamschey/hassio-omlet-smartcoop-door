@@ -12,7 +12,7 @@ The Omlet server is **polled**, using their official API, to get the latest stat
 
 ## Device availability
 
-Battery-powered devices sleep between connections. Their controls remain available using the last reported state when `state.general.powerSource` is `battery`, even while disconnected. Failed API updates or missing device state still make the controls unavailable. Devices using external power still require a connection.
+Battery-powered devices sleep between connections. Their controls remain available using the last reported state whenever `state.general.powerSource` is anything other than `external`, even while disconnected. Failed API updates or missing device state still make the controls unavailable. Devices using external power still require a connection.
 
 Every device, including the feeder, has a **Connected** diagnostic sensor showing its actual connection status independently of control availability. A **Power Source** diagnostic sensor exposes the exact `state.general.powerSource` value reported by the API (such as `battery` or `external`) for doors, fans, and feeders. This sensor remains available while the device is disconnected, provided coordinator updates succeed.
 
@@ -44,6 +44,6 @@ Create a webhook
 1. Visit [Manage Webhooks](https://smart.omlet.com/developers/my/webhooks) in the Omlet Developer Portal.
 2. The URL will be [your hostname]**/api/webhook/omlet_smart_coop**
 3. Select all the events you want to track.
-4. Webhook token is mandatory but not used, any value will suffice.
+4. Omlet requires a webhook token. Enter the same token in the integration (during setup, or later under the integration's **Configure** options) and Home Assistant ignores webhook requests that don't carry it. Without a token set in the integration, any request to the URL triggers a refresh.
 
 Enjoy!

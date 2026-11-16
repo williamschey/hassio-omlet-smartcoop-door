@@ -1,11 +1,13 @@
 """Define the Omlet Smart Coop time entities."""
 
 from abc import abstractmethod
+from datetime import datetime, time
 
 from smartcoop.api.models import Device
 
+from homeassistant.components.time import TimeEntity
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.entity import Entity, EntityCategory
+from homeassistant.helpers.entity import EntityCategory
 
 from .const import DOMAIN
 from .entity import OmletBaseEntity
@@ -39,31 +41,41 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
     async_add_entities(timeInputs)
 
 
-class CoopTimeInput(OmletBaseEntity, Entity):
+def _parse_time(value) -> time | None:
+    """Parse the API's "HH:MM" time, or return None."""
+    if not isinstance(value, str):
+        return None
+    try:
+        return datetime.strptime(value, "%H:%M").time()
+    except ValueError:
+        return None
+
+
+class CoopTimeInput(OmletBaseEntity, TimeEntity):
     """Representation of a Smart Coop time input entity."""
 
     @callback
     def _update_attr(self, device: Device):
-        self._attr_state = device.configuration.door.openTime
+        self._attr_native_value = _parse_time(self._get_value(device))
 
-    async def async_set_value(self, value: str):
+    async def async_set_value(self, value: time) -> None:
         """Set a new time value."""
         device = self.coordinator.data[self.device_id]
 
         str_value = value.strftime("%H:%M")
-        
-        current_state = self._attr_state
-        if hasattr(current_state, "strftime"):
-            current_state = current_state.strftime("%H:%M")
-            
-        if current_state == str_value:
+        current = self._attr_native_value
+        if current is not None and current.strftime("%H:%M") == str_value:
             return
 
         self._patch_config(device, str_value)
         await self.coordinator.patch_config(device)
 
-        self._attr_state = str_value
+        self._attr_native_value = _parse_time(str_value)
         self.async_write_ha_state()
+
+    @abstractmethod
+    def _get_value(self, device: Device) -> str | None:
+        """Return the configured "HH:MM" time."""
 
     @abstractmethod
     def _patch_config(self, device: Device, strTime):
@@ -79,9 +91,8 @@ class CoopOpenTimeInput(CoopTimeInput):
         self._attr_name = f"{device.name} Open Time"
         super().__init__(device, coordinator, "open_time")
 
-    @callback
-    def _update_attr(self, device: Device):
-        self._attr_state = device.configuration.door.openTime
+    def _get_value(self, device: Device):
+        return device.configuration.door.openTime
 
     def _patch_config(self, device: Device, strTime):
         device.configuration.door.openTime = strTime
@@ -97,9 +108,8 @@ class CoopCloseTimeInput(CoopTimeInput):
         self._attr_name = f"{device.name} Close Time"
         super().__init__(device, coordinator, "close_time")
 
-    @callback
-    def _update_attr(self, device: Device):
-        self._attr_state = device.configuration.door.closeTime
+    def _get_value(self, device: Device):
+        return device.configuration.door.closeTime
 
     def _patch_config(self, device: Device, strTime):
         device.configuration.door.closeTime = strTime
@@ -113,9 +123,8 @@ class CoopOvernightSleepStartInput(CoopTimeInput):
         self._attr_name = f"{device.name} Overnight Sleep Start Time"
         super().__init__(device, coordinator, "overnight_sleep_start_time")
 
-    @callback
-    def _update_attr(self, device: Device):
-        self._attr_state = device.configuration.general.overnightSleepStart
+    def _get_value(self, device: Device):
+        return device.configuration.general.overnightSleepStart
 
     def _patch_config(self, device: Device, strTime):
         device.configuration.general.overnightSleepStart = strTime
@@ -129,9 +138,8 @@ class CoopOvernightSleepEndInput(CoopTimeInput):
         self._attr_name = f"{device.name} Overnight Sleep End Time"
         super().__init__(device, coordinator, "overnight_sleep_end_time")
 
-    @callback
-    def _update_attr(self, device: Device):
-        self._attr_state = device.configuration.general.overnightSleepEnd
+    def _get_value(self, device: Device):
+        return device.configuration.general.overnightSleepEnd
 
     def _patch_config(self, device: Device, strTime):
         device.configuration.general.overnightSleepEnd = strTime
@@ -151,11 +159,10 @@ class CoopTimeScheduleInput(CoopTimeInput):
         key = f"time_{type_str.lower()}_{index}"
         super().__init__(device, coordinator, key)
 
-    @callback
-    def _update_attr(self, device: Device):
+    def _get_value(self, device: Device):
         type_str = "On" if self._is_on_time else "Off"
         attr_name = f"time{type_str}{self._index}"
-        self._attr_state = getattr(device.configuration.fan, attr_name)
+        return getattr(device.configuration.fan, attr_name)
 
     def _patch_config(self, device: Device, strTime):
         type_str = "On" if self._is_on_time else "Off"
@@ -171,10 +178,9 @@ class FeederTimeScheduleInput(CoopTimeInput):
         self._attr_name = f"{device.name} {type_str} Time {index}"
         key = f"feeder_{type_str.lower()}_time_{index}"
         super().__init__(device, coordinator, key)
-    @callback
-    def _update_attr(self, device: Device):
+    def _get_value(self, device: Device):
         attr_name = f"{'open' if self._is_open_time else 'close'}Time{self._index}"
-        self._attr_state = getattr(device.configuration.feeder, attr_name)
+        return getattr(device.configuration.feeder, attr_name)
     def _patch_config(self, device: Device, strTime):
         attr_name = f"{'open' if self._is_open_time else 'close'}Time{self._index}"
         setattr(device.configuration.feeder, attr_name, strTime)

@@ -1,5 +1,4 @@
 """Support for Omlet Smart Coop Door and Feeder."""
-from datetime import timedelta
 from smartcoop.api.models import Device
 from typing import Any
 from homeassistant.components.cover import (
@@ -36,14 +35,14 @@ class CoopCover(OmletOperationalEntity, CoverEntity):
         self._attr_is_opening = True
         self._attr_is_closing = False
         self.async_write_ha_state()
-        self.coordinator.update_interval = timedelta(seconds=10)
+        self.coordinator.set_moving(self.unique_id, True)
         await self.coordinator.perform_action(self.device_id, "open")
     async def async_close_cover(self):
         """Close the door."""
         self._attr_is_opening = False
         self._attr_is_closing = True
         self.async_write_ha_state()
-        self.coordinator.update_interval = timedelta(seconds=10)
+        self.coordinator.set_moving(self.unique_id, True)
         await self.coordinator.perform_action(self.device_id, "close")
     async def async_stop_cover(self):
         """Stop the door."""
@@ -59,10 +58,10 @@ class CoopCover(OmletOperationalEntity, CoverEntity):
         self._attr_is_closed = self.raw_state == "closed"
         self._attr_is_closing = self.raw_state in ("closing", "closepending")
         self._attr_is_opening = self.raw_state in ("opening", "openpending")
-        # if opening or closing, poll every 10 secs, otherwise poll every 60 secs
-        if not self._attr_is_closing and not self._attr_is_opening:
-            if timedelta(seconds=60).__ne__(self.coordinator.update_interval):
-                self.coordinator.update_interval = timedelta(seconds=60)
+        # Poll every 10 secs while opening or closing, otherwise every 60 secs
+        self.coordinator.set_moving(
+            self.unique_id, self._attr_is_closing or self._attr_is_opening
+        )
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:
         return {"raw_state": self.raw_state}
@@ -81,14 +80,14 @@ class FeederCover(OmletOperationalEntity, CoverEntity):
         self._attr_is_opening = True
         self._attr_is_closing = False
         self.async_write_ha_state()
-        self.coordinator.update_interval = timedelta(seconds=10)
+        self.coordinator.set_moving(self.unique_id, True)
         await self.coordinator.perform_action(self.device_id, "open")
     async def async_close_cover(self):
         """Close the feeder."""
         self._attr_is_opening = False
         self._attr_is_closing = True
         self.async_write_ha_state()
-        self.coordinator.update_interval = timedelta(seconds=10)
+        self.coordinator.set_moving(self.unique_id, True)
         await self.coordinator.perform_action(self.device_id, "close")
     @callback
     def _update_attr(self, device: Device) -> None:
@@ -96,9 +95,9 @@ class FeederCover(OmletOperationalEntity, CoverEntity):
         self._attr_is_closed = self.raw_state == "closed"
         self._attr_is_closing = self.raw_state in ("closing", "closepending")
         self._attr_is_opening = self.raw_state in ("opening", "openpending")
-        if not self._attr_is_closing and not self._attr_is_opening:
-            if timedelta(seconds=60) != self.coordinator.update_interval:
-                self.coordinator.update_interval = timedelta(seconds=60)
+        self.coordinator.set_moving(
+            self.unique_id, self._attr_is_closing or self._attr_is_opening
+        )
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:
         return {"raw_state": self.raw_state}

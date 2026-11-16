@@ -6,6 +6,9 @@
     "@dpwood"
   ],
   "config_flow": true,
+  "dependencies": [
+    "webhook"
+  ],
   "documentation": "https://github.com/williamschey/hassio-omlet-smartcoop-door/wiki",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/williamschey/hassio-omlet-smartcoop-door/issues",

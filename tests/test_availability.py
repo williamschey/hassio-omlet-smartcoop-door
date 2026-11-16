@@ -1,6 +1,6 @@
 """Availability regressions using Home Assistant and the integration's SDK.
 
-With those dependencies installed, run: python -m unittest discover -s tests
+With requirements_test.txt installed, run: pytest
 """
 
 from copy import deepcopy
@@ -85,9 +85,10 @@ class OperationalAvailabilityTests(unittest.TestCase):
                 coordinator.last_update_success = update_success
                 entity = entity_type(device, coordinator)
 
+                # 1.0.10: anything but external power counts as battery.
                 self.assertIs(
                     entity.available,
-                    update_success and (power == "battery" or connected),
+                    update_success and (power != "external" or connected),
                 )
 
     def test_availability_follows_updated_power_source(self) -> None:
