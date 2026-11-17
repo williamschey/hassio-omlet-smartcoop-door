@@ -61,10 +61,21 @@ def config_entry_data() -> dict:
 
 
 @pytest.fixture
-def config_entry(hass, config_entry_data):
+def config_entry_options() -> dict:
+    """Config entry options."""
+    return {}
+
+
+@pytest.fixture
+def config_entry(hass, config_entry_data, config_entry_options):
     """A config entry added to hass, not yet set up."""
     from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-    entry = MockConfigEntry(domain=DOMAIN, data=config_entry_data, title="Omlet Smart Coop")
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data=config_entry_data,
+        options=config_entry_options,
+        title="Omlet Smart Coop",
+    )
     entry.add_to_hass(hass)
     return entry

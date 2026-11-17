@@ -18,6 +18,8 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up Omlet Smart Coop from a config entry."""
 
+    _async_move_webhook_token_to_options(hass, entry)
+
     coordinator = CoopCoordinator(hass, entry)
 
     # initial refresh
@@ -91,9 +93,36 @@ def _async_migrate_device_identifiers(
             by_identifier[device_id] = old
 
 
+@callback
+def _async_move_webhook_token_to_options(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Keep the webhook token in the options only, so clearing it there works.
+
+    An earlier revision of this change stored a token entered at setup in the
+    entry's data.
+    """
+    if WEBHOOK_TOKEN not in entry.data:
+        return
+    data = dict(entry.data)
+    token = data.pop(WEBHOOK_TOKEN)
+    options = dict(entry.options)
+    if token and WEBHOOK_TOKEN not in options:
+        options[WEBHOOK_TOKEN] = token
+    hass.config_entries.async_update_entry(entry, data=data, options=options)
+
+
 def _entry_webhook_token(entry: ConfigEntry) -> str | None:
     """Return the webhook token set for an entry, if any."""
-    return entry.options.get(WEBHOOK_TOKEN) or entry.data.get(WEBHOOK_TOKEN)
+    return entry.options.get(WEBHOOK_TOKEN) or None
+
+
+def _tokens_match(received, expected: str) -> bool:
+    """Compare tokens in constant time.
+
+    hmac.compare_digest only accepts ASCII str, so compare UTF-8 bytes.
+    """
+    return isinstance(received, str) and hmac.compare_digest(
+        received.encode(), expected.encode()
+    )
 
 
 async def async_handle_webhook(hass: HomeAssistant, webhook_id: str, request):
@@ -117,9 +146,7 @@ async def async_handle_webhook(hass: HomeAssistant, webhook_id: str, request):
         if coordinator is None:
             continue  # not loaded
         config_token = _entry_webhook_token(config_entry)
-        if config_token and not (
-            isinstance(token, str) and hmac.compare_digest(token, config_token)
-        ):
+        if config_token and not _tokens_match(token, config_token):
             continue
         matched = True
         await coordinator.async_request_refresh()

@@ -20,7 +20,26 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
         if device.deviceType == "Feeder":
             covers.append(FeederCover(device, coordinator))
     async_add_entities(covers)
-class CoopCover(OmletOperationalEntity, CoverEntity):
+class OmletCoverEntity(OmletOperationalEntity, CoverEntity):
+    """A door or feeder hatch that opens and closes on command."""
+
+    async def _async_command(self, key: str, *, opening: bool, closing: bool) -> None:
+        """Send an action, showing the move optimistically until it reports back."""
+        # Check first, so a device without the action keeps its state.
+        self.coordinator.check_action(self.device_id, key)
+        self._attr_is_opening = opening
+        self._attr_is_closing = closing
+        self.async_write_ha_state()
+        try:
+            await self.coordinator.perform_action(self.device_id, key)
+        except Exception:
+            # Back to the last state the device reported.
+            self._update_attr(self.coordinator.data[self.device_id])
+            self.async_write_ha_state()
+            raise
+
+
+class CoopCover(OmletCoverEntity):
     """Representation of the coop door."""
     _attr_device_class = CoverDeviceClass.DOOR
     _attr_supported_features: CoverEntityFeature = (
@@ -32,24 +51,13 @@ class CoopCover(OmletOperationalEntity, CoverEntity):
         super().__init__(device, coordinator, "cover")
     async def async_open_cover(self):
         """Open the door."""
-        self._attr_is_opening = True
-        self._attr_is_closing = False
-        self.async_write_ha_state()
-        self.coordinator.set_moving(self.unique_id, True)
-        await self.coordinator.perform_action(self.device_id, "open")
+        await self._async_command("open", opening=True, closing=False)
     async def async_close_cover(self):
         """Close the door."""
-        self._attr_is_opening = False
-        self._attr_is_closing = True
-        self.async_write_ha_state()
-        self.coordinator.set_moving(self.unique_id, True)
-        await self.coordinator.perform_action(self.device_id, "close")
+        await self._async_command("close", opening=False, closing=True)
     async def async_stop_cover(self):
         """Stop the door."""
-        self._attr_is_opening = False
-        self._attr_is_closing = False
-        self.async_write_ha_state()
-        await self.coordinator.perform_action(self.device_id, "stop")
+        await self._async_command("stop", opening=False, closing=False)
     @callback
     def _update_attr(self, device: Device) -> None:
         self.raw_state = device.state.door.state
@@ -58,14 +66,11 @@ class CoopCover(OmletOperationalEntity, CoverEntity):
         self._attr_is_closed = self.raw_state == "closed"
         self._attr_is_closing = self.raw_state in ("closing", "closepending")
         self._attr_is_opening = self.raw_state in ("opening", "openpending")
-        # Poll every 10 secs while opening or closing, otherwise every 60 secs
-        self.coordinator.set_moving(
-            self.unique_id, self._attr_is_closing or self._attr_is_opening
-        )
+
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:
         return {"raw_state": self.raw_state}
-class FeederCover(OmletOperationalEntity, CoverEntity):
+class FeederCover(OmletCoverEntity):
     """Representation of the feeder hatch."""
     _attr_device_class = CoverDeviceClass.DOOR
     _attr_supported_features: CoverEntityFeature = (
@@ -77,27 +82,17 @@ class FeederCover(OmletOperationalEntity, CoverEntity):
         super().__init__(device, coordinator, "feeder_cover")
     async def async_open_cover(self):
         """Open the feeder."""
-        self._attr_is_opening = True
-        self._attr_is_closing = False
-        self.async_write_ha_state()
-        self.coordinator.set_moving(self.unique_id, True)
-        await self.coordinator.perform_action(self.device_id, "open")
+        await self._async_command("open", opening=True, closing=False)
     async def async_close_cover(self):
         """Close the feeder."""
-        self._attr_is_opening = False
-        self._attr_is_closing = True
-        self.async_write_ha_state()
-        self.coordinator.set_moving(self.unique_id, True)
-        await self.coordinator.perform_action(self.device_id, "close")
+        await self._async_command("close", opening=False, closing=True)
     @callback
     def _update_attr(self, device: Device) -> None:
         self.raw_state = device.state.feeder.state
         self._attr_is_closed = self.raw_state == "closed"
         self._attr_is_closing = self.raw_state in ("closing", "closepending")
         self._attr_is_opening = self.raw_state in ("opening", "openpending")
-        self.coordinator.set_moving(
-            self.unique_id, self._attr_is_closing or self._attr_is_opening
-        )
+
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:
         return {"raw_state": self.raw_state}

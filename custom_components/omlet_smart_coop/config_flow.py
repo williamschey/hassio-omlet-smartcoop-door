@@ -48,10 +48,13 @@ class OmletSmartCoopConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             errors = await _async_validate_api_key(self.hass, api_key)
             if not errors:
-                data = {API_KEY: api_key}
-                if token := user_input.get(WEBHOOK_TOKEN, "").strip():
-                    data[WEBHOOK_TOKEN] = token
-                return self.async_create_entry(title="Omlet Smart Coop", data=data)
+                # The token lives in the options, where it can also be changed or cleared.
+                token = user_input.get(WEBHOOK_TOKEN, "").strip()
+                return self.async_create_entry(
+                    title="Omlet Smart Coop",
+                    data={API_KEY: api_key},
+                    options={WEBHOOK_TOKEN: token} if token else {},
+                )
 
         return self.async_show_form(
             step_id="user",
@@ -95,9 +98,7 @@ class OmletSmartCoopOptionsFlow(config_entries.OptionsFlow):
             token = user_input.get(WEBHOOK_TOKEN, "").strip()
             return self.async_create_entry(data={WEBHOOK_TOKEN: token} if token else {})
 
-        current = self.config_entry.options.get(
-            WEBHOOK_TOKEN, self.config_entry.data.get(WEBHOOK_TOKEN, "")
-        )
+        current = self.config_entry.options.get(WEBHOOK_TOKEN, "")
         return self.async_show_form(
             step_id="init",
             data_schema=vol.Schema(

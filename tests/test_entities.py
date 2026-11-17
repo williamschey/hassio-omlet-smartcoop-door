@@ -1,10 +1,11 @@
 """Entity behaviour: switch, cover, number, time and the Next Update sensor."""
 
 from datetime import datetime
-from unittest.mock import Mock
+from unittest.mock import AsyncMock
 
 from freezegun.api import FrozenDateTimeFactory
 import pytest
+import requests
 
 from homeassistant.const import ATTR_ENTITY_ID, STATE_OFF, STATE_ON
 from homeassistant.core import HomeAssistant
@@ -17,7 +18,6 @@ from custom_components.omlet_smart_coop.coordinator import (
     NORMAL_UPDATE_INTERVAL,
     CoopCoordinator,
 )
-from custom_components.omlet_smart_coop.cover import CoopCover, FeederCover
 from custom_components.omlet_smart_coop.sensor import CoopNextUpdateTime
 
 from .conftest import load_device
@@ -110,28 +110,137 @@ def _coordinator_with(hass, config_entry, *devices) -> CoopCoordinator:
     return coordinator
 
 
-async def test_polling_fast_while_any_cover_moves(hass: HomeAssistant, config_entry) -> None:
-    """Fixed: an idle feeder reset the polling to 60s while the door was moving."""
-    door = load_device("door")
-    feeder = load_device("feeder")
-    feeder.state.feeder.state = "closed"
-    coordinator = _coordinator_with(hass, config_entry, door, feeder)
+async def _refresh(hass: HomeAssistant, config_entry) -> CoopCoordinator:
+    coordinator = hass.data[DOMAIN][config_entry.entry_id]
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+    return coordinator
 
-    door_cover = CoopCover(door, coordinator)
-    feeder_cover = FeederCover(feeder, coordinator)
-    door_cover.async_write_ha_state = Mock()
-    feeder_cover.async_write_ha_state = Mock()
+
+@pytest.mark.parametrize(
+    "devices", [[load_device("door"), load_device("feeder")]]
+)
+async def test_polling_follows_device_states(
+    hass: HomeAssistant, mock_omlet, config_entry, devices
+) -> None:
+    """Poll fast while any door or hatch moves, whatever the entities are doing."""
+    door, feeder = devices
+    door.state.door.state = "open"
+    feeder.state.feeder.state = "closed"
+    await _setup(hass, config_entry)
+    coordinator = hass.data[DOMAIN][config_entry.entry_id]
     assert coordinator.update_interval == NORMAL_UPDATE_INTERVAL
 
-    door.state.door.state = "opening"
-    door_cover._handle_coordinator_update()
+    door.state.door.state = "closepending"
+    assert (await _refresh(hass, config_entry)).update_interval == FAST_UPDATE_INTERVAL
+
+    # An idle feeder doesn't slow polling while the door moves.
+    door.state.door.state = "closing"
+    assert (await _refresh(hass, config_entry)).update_interval == FAST_UPDATE_INTERVAL
+
+    door.state.door.state = "closed"
+    feeder.state.feeder.state = "opening"
+    assert (await _refresh(hass, config_entry)).update_interval == FAST_UPDATE_INTERVAL
+
+    feeder.state.feeder.state = "open"
+    assert (await _refresh(hass, config_entry)).update_interval == NORMAL_UPDATE_INTERVAL
+
+
+async def test_disabled_cover_does_not_hold_fast_polling(
+    hass: HomeAssistant, mock_omlet, config_entry, devices
+) -> None:
+    """Review point 4: a disabled cover created mid-move kept polling at 10 s."""
+    registry = er.async_get(hass)
+    registry.async_get_or_create(
+        "cover",
+        DOMAIN,
+        "door-id_cover",
+        config_entry=config_entry,
+        disabled_by=er.RegistryEntryDisabler.USER,
+    )
+    devices[0].state.door.state = "opening"
+    await _setup(hass, config_entry)
+    coordinator = hass.data[DOMAIN][config_entry.entry_id]
+    assert registry.async_get(eid(hass, "cover", "cover")).disabled
     assert coordinator.update_interval == FAST_UPDATE_INTERVAL
 
-    feeder_cover._handle_coordinator_update()  # idle feeder
+    devices[0].state.door.state = "open"
+    assert (await _refresh(hass, config_entry)).update_interval == NORMAL_UPDATE_INTERVAL
+
+
+async def test_open_command_polls_fast(
+    hass: HomeAssistant, mock_omlet, config_entry, no_action_sleep
+) -> None:
+    """Right after an open or close command, poll fast until the device reports."""
+    await _setup(hass, config_entry)
+    coordinator = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator.async_request_refresh = AsyncMock()
+    assert coordinator.update_interval == NORMAL_UPDATE_INTERVAL
+
+    await hass.services.async_call(
+        "cover", "close_cover", {ATTR_ENTITY_ID: eid(hass, "cover", "cover")}, blocking=True
+    )
     assert coordinator.update_interval == FAST_UPDATE_INTERVAL
 
-    door.state.door.state = "open"
-    door_cover._handle_coordinator_update()
+
+async def test_light_command_keeps_normal_polling(
+    hass: HomeAssistant, mock_omlet, config_entry, no_action_sleep
+) -> None:
+    """Only moves speed up polling."""
+    await _setup(hass, config_entry)
+    coordinator = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator.async_request_refresh = AsyncMock()
+
+    light = er.async_get(hass).async_get_entity_id("light", DOMAIN, "door-id_light")
+    await hass.services.async_call("light", "turn_on", {ATTR_ENTITY_ID: light}, blocking=True)
+    assert coordinator.update_interval == NORMAL_UPDATE_INTERVAL
+
+
+async def test_missing_action_leaves_state_and_polling(
+    hass: HomeAssistant, mock_omlet, config_entry, devices, no_action_sleep
+) -> None:
+    """Review point 5: the optimistic state was set before the action check."""
+    devices[0].state.door.state = "open"
+    devices[0].actions = [a for a in devices[0].actions if a.name != "close"]
+    await _setup(hass, config_entry)
+    cover = eid(hass, "cover", "cover")
+    coordinator = hass.data[DOMAIN][config_entry.entry_id]
+    states: list[str] = []
+    hass.bus.async_listen(
+        "state_changed",
+        lambda event: states.append(event.data["new_state"].state)
+        if event.data["entity_id"] == cover
+        else None,
+    )
+
+    with pytest.raises(HomeAssistantError, match="'close' action"):
+        await hass.services.async_call(
+            "cover", "close_cover", {ATTR_ENTITY_ID: cover}, blocking=True
+        )
+    await hass.async_block_till_done()
+
+    assert hass.states.get(cover).state == "open"
+    assert states == []  # never shown as closing
+    assert coordinator.update_interval == NORMAL_UPDATE_INTERVAL
+
+
+async def test_failed_command_restores_state(
+    hass: HomeAssistant, mock_omlet, config_entry, devices, no_action_sleep
+) -> None:
+    """If Omlet can't be reached, the cover goes back to its last reported state."""
+    devices[0].state.door.state = "closed"
+    await _setup(hass, config_entry)
+    cover = eid(hass, "cover", "cover")
+    coordinator = hass.data[DOMAIN][config_entry.entry_id]
+    mock_omlet.perform_action.side_effect = requests.ConnectionError("down")
+
+    with pytest.raises(HomeAssistantError, match="Omlet"):
+        await hass.services.async_call(
+            "cover", "open_cover", {ATTR_ENTITY_ID: cover}, blocking=True
+        )
+    await hass.async_block_till_done()
+
+    assert hass.states.get(cover).state == "closed"
     assert coordinator.update_interval == NORMAL_UPDATE_INTERVAL
 
 

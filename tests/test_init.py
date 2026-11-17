@@ -97,14 +97,14 @@ async def test_webhook_removed_with_last_entry(
     assert DOMAIN not in hass.data or hass.data[DOMAIN] == {}
 
 
-@pytest.mark.parametrize(
-    "config_entry_data", [{"api_key": "test-api-key", WEBHOOK_TOKEN: "s3cret"}]
-)
+@pytest.mark.parametrize("config_entry_options", [{WEBHOOK_TOKEN: "s3cret"}])
 @pytest.mark.parametrize(
     ("body", "refreshes"),
     [
         ({"token": "s3cret"}, True),
         ({"token": "wrong"}, False),
+        ({"token": "sécret"}, False),
+        ({"token": 42}, False),
         ({}, False),
         (["not", "an", "object"], False),
     ],
@@ -121,6 +121,99 @@ async def test_webhook_token_checked(
     resp = await client.post(WEBHOOK_URL, json=body)
     assert resp.status == 200
     assert coordinator.async_request_refresh.await_count == int(refreshes)
+
+
+@pytest.mark.parametrize("config_entry_options", [{WEBHOOK_TOKEN: "pässwörd"}])
+@pytest.mark.parametrize(
+    ("token", "refreshes"), [("pässwörd", True), ("passwort", False), ("pässwört", False)]
+)
+async def test_webhook_non_ascii_token(
+    hass: HomeAssistant,
+    mock_omlet,
+    config_entry,
+    hass_client_no_auth,
+    caplog: pytest.LogCaptureFixture,
+    token,
+    refreshes,
+) -> None:
+    """Review point 3: a non-ASCII token raised TypeError instead of comparing."""
+    await _setup(hass, config_entry)
+    coordinator = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator.async_request_refresh = AsyncMock()
+
+    client = await hass_client_no_auth()
+    resp = await client.post(WEBHOOK_URL, json={"token": token})
+    assert resp.status == 200
+    assert coordinator.async_request_refresh.await_count == int(refreshes)
+    assert "Traceback" not in caplog.text
+    assert "TypeError" not in caplog.text
+
+
+@pytest.mark.parametrize(
+    "config_entry_data", [{"api_key": "test-api-key", WEBHOOK_TOKEN: "in-data"}]
+)
+async def test_token_in_data_moved_to_options(
+    hass: HomeAssistant, mock_omlet, config_entry, hass_client_no_auth
+) -> None:
+    """A token stored in the data by the earlier revision moves to the options."""
+    await _setup(hass, config_entry)
+    assert config_entry.data == {"api_key": "test-api-key"}
+    assert config_entry.options == {WEBHOOK_TOKEN: "in-data"}
+
+    coordinator = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator.async_request_refresh = AsyncMock()
+    client = await hass_client_no_auth()
+    await client.post(WEBHOOK_URL, json={"token": "nope"})
+    coordinator.async_request_refresh.assert_not_awaited()
+    await client.post(WEBHOOK_URL, json={"token": "in-data"})
+    coordinator.async_request_refresh.assert_awaited_once()
+
+
+@pytest.mark.parametrize(
+    "config_entry_data", [{"api_key": "test-api-key", WEBHOOK_TOKEN: "in-data"}]
+)
+@pytest.mark.parametrize("config_entry_options", [{WEBHOOK_TOKEN: "in-options"}])
+async def test_token_in_options_wins_over_data(
+    hass: HomeAssistant, mock_omlet, config_entry
+) -> None:
+    """If both are set, the options token is kept and the data copy dropped."""
+    await _setup(hass, config_entry)
+    assert config_entry.data == {"api_key": "test-api-key"}
+    assert config_entry.options == {WEBHOOK_TOKEN: "in-options"}
+
+
+async def test_webhook_shared_by_two_entries(
+    hass: HomeAssistant, mock_omlet, hass_client_no_auth
+) -> None:
+    """Review point 8: unloading one of two entries keeps the shared webhook."""
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    first = MockConfigEntry(domain=DOMAIN, data={"api_key": "key-1"})
+    second = MockConfigEntry(domain=DOMAIN, data={"api_key": "key-2"})
+    for entry in (first, second):
+        entry.add_to_hass(hass)
+        await _setup(hass, entry)
+    assert first.state is second.state is ConfigEntryState.LOADED
+
+    assert await hass.config_entries.async_unload(first.entry_id)
+    await hass.async_block_till_done()
+
+    coordinator = hass.data[DOMAIN][second.entry_id]
+    coordinator.async_request_refresh = AsyncMock()
+    client = await hass_client_no_auth()
+    await client.post(WEBHOOK_URL, json={})
+    coordinator.async_request_refresh.assert_awaited_once()
+
+    # Unloading the last one removes it, and setting one up again restores it.
+    assert await hass.config_entries.async_unload(second.entry_id)
+    await hass.async_block_till_done()
+    assert DOMAIN not in hass.data or hass.data[DOMAIN] == {}
+
+    await _setup(hass, first)
+    coordinator = hass.data[DOMAIN][first.entry_id]
+    coordinator.async_request_refresh = AsyncMock()
+    await client.post(WEBHOOK_URL, json={})
+    coordinator.async_request_refresh.assert_awaited_once()
 
 
 async def test_webhook_token_from_options(

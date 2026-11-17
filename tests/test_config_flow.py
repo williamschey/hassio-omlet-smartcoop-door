@@ -29,7 +29,9 @@ async def test_user_flow_creates_entry(hass: HomeAssistant, mock_omlet) -> None:
         result["flow_id"], {API_KEY: f"  {API_KEY_VALUE} ", WEBHOOK_TOKEN: " secret "}
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert result["data"] == {API_KEY: API_KEY_VALUE, WEBHOOK_TOKEN: "secret"}
+    # The token goes in the options, where it can later be changed or cleared.
+    assert result["data"] == {API_KEY: API_KEY_VALUE}
+    assert result["result"].options == {WEBHOOK_TOKEN: "secret"}
 
 
 async def test_user_flow_without_webhook_token(hass: HomeAssistant, mock_omlet) -> None:
@@ -40,6 +42,7 @@ async def test_user_flow_without_webhook_token(hass: HomeAssistant, mock_omlet) 
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["data"] == {API_KEY: API_KEY_VALUE}
+    assert result["result"].options == {}
 
 
 @pytest.mark.parametrize(
@@ -123,3 +126,31 @@ async def test_options_flow_sets_and_clears_token(
         result["flow_id"], {WEBHOOK_TOKEN: ""}
     )
     assert config_entry.options == {}
+
+
+async def test_token_set_at_setup_can_be_cleared(
+    hass: HomeAssistant, mock_omlet, hass_client_no_auth
+) -> None:
+    """Review point 2: a token entered at setup used to survive being cleared."""
+    from unittest.mock import AsyncMock
+
+    result = await _start(hass)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {API_KEY: API_KEY_VALUE, WEBHOOK_TOKEN: "at-setup"}
+    )
+    entry = result["result"]
+    await hass.async_block_till_done()
+
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {WEBHOOK_TOKEN: ""}
+    )
+    assert entry.options == {}
+    assert WEBHOOK_TOKEN not in entry.data
+
+    # With the token cleared, any request refreshes again.
+    coordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator.async_request_refresh = AsyncMock()
+    client = await hass_client_no_auth()
+    await client.post(f"/api/webhook/{DOMAIN}", json={"token": "anything"})
+    coordinator.async_request_refresh.assert_awaited_once()
