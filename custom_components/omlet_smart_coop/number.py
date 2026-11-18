@@ -8,7 +8,7 @@ from homeassistant.components.number import NumberEntity
 from homeassistant.components.number.const import NumberMode
 from homeassistant.const import PERCENTAGE, UnitOfTime, UnitOfTemperature
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.entity import Entity, EntityCategory
+from homeassistant.helpers.entity import EntityCategory
 
 from .const import DOMAIN
 from .coordinator import CoopCoordinator
@@ -48,15 +48,16 @@ class CoopNumberInput(OmletBaseEntity, NumberEntity):
     async def async_set_native_value(self, value: float):
         """Set a new light level value (0-99)."""
         device = self.coordinator.data[self.device_id]
+        # Every value is a whole number (step 1); the API expects an int.
         iVal = int(value)
 
-        if self._attr_native_value == value:
+        if self._attr_native_value == iVal:
             return
 
-        self._patch_config(device, value)
+        self._patch_config(device, iVal)
         await self.coordinator.patch_config(device)
 
-        self._attr_native_value = value
+        self._attr_native_value = iVal
         self.async_write_ha_state()
 
     @abstractmethod
@@ -66,7 +67,7 @@ class CoopNumberInput(OmletBaseEntity, NumberEntity):
 class CoopLightLevelInput(CoopNumberInput):
     """Representation of a Smart Coop light level input entity."""
 
-    _attr_unit_of_measurement = PERCENTAGE
+    _attr_native_unit_of_measurement = PERCENTAGE
     _attr_native_min_value = 0
     _attr_native_max_value = 100
     _attr_native_step = 1
@@ -115,7 +116,7 @@ class CoopCloseLightLevelInput(CoopLightLevelInput):
 
 class CoopPollTimeInput(CoopNumberInput):
     """Representation of a Smart Coop time input entity."""
-    _attr_unit_of_measurement = UnitOfTime.SECONDS
+    _attr_native_unit_of_measurement = UnitOfTime.SECONDS
     _attr_native_min_value = 0
     _attr_native_max_value = 1800  # No idea what the app permits
     _attr_native_step = 1
@@ -137,7 +138,7 @@ class CoopPollTimeInput(CoopNumberInput):
 
 class CoopFanTemperatureInput(CoopNumberInput):
     """Representation of a Smart Coop fan temperature input."""
-    _attr_unit_of_measurement = UnitOfTemperature.CELSIUS
+    _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
     _attr_entity_category = EntityCategory.CONFIG
     _attr_mode = NumberMode.BOX
     _attr_native_min_value = 0

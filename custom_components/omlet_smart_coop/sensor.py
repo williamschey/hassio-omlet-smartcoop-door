@@ -1,6 +1,6 @@
 """Support for Omlet Smart Coop sensors."""
 
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
 
 from smartcoop.api.models import Device
 
@@ -175,25 +175,26 @@ class CoopNextUpdateTime(OmletBaseEntity, SensorEntity):
             self._attr_native_value = dt_util.as_local(strippedTime)
             return
 
-        sleep_start = datetime.combine(
-            date.today(),
-            datetime.strptime(
-                device.configuration.general.overnightSleepStart, "%H:%M"
-            ).time(),
-        )
-        sleep_end = datetime.combine(
-            date.today(),
-            datetime.strptime(
-                device.configuration.general.overnightSleepEnd, "%H:%M"
-            ).time(),
-        )
+        # Naive times in Home Assistant's time zone, the zone dt_util.as_local
+        # gives a naive datetime, rather than the host's clock.
+        now = dt_util.now().replace(tzinfo=None)
+        start_time = datetime.strptime(
+            device.configuration.general.overnightSleepStart, "%H:%M"
+        ).time()
+        end_time = datetime.strptime(
+            device.configuration.general.overnightSleepEnd, "%H:%M"
+        ).time()
 
-        if sleep_end < sleep_start:
-            sleep_end = sleep_end + timedelta(days=1)
+        # A window that crosses midnight may have started yesterday.
+        for day in (now.date() - timedelta(days=1), now.date()):
+            sleep_start = datetime.combine(day, start_time)
+            sleep_end = datetime.combine(day, end_time)
+            if sleep_end < sleep_start:
+                sleep_end = sleep_end + timedelta(days=1)
 
-        if sleep_start < datetime.now() < sleep_end:
-            self._attr_native_value = dt_util.as_local(sleep_end)
-            return
+            if sleep_start < now < sleep_end:
+                self._attr_native_value = dt_util.as_local(sleep_end)
+                return
 
         self._attr_native_value = dt_util.as_local(strippedTime)
         return
@@ -308,7 +309,7 @@ class CoopFanSpeed(OmletBaseEntity, SensorEntity):
             
         if mode == "time":
             import datetime
-            now = datetime.datetime.now().time()
+            now = dt_util.now().time()
             
             def parse_time(t_str):
                 try:

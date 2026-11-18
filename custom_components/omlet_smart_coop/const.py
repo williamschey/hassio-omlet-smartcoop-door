@@ -22,6 +22,7 @@ class FEEDER_MODES(str, Enum):
 
 DOMAIN = "omlet_smart_coop"
 API_KEY = "api_key"
+API_TIMEOUT = 30  # seconds
 PLATFORMS = [
     Platform.BINARY_SENSOR,
     Platform.COVER,

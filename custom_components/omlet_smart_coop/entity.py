@@ -31,7 +31,7 @@ class OmletBaseEntity(CoordinatorEntity[CoopCoordinator]):
             swversion = device.state.general.firmwareVersionCurrent
 
         return DeviceInfo(
-            identifiers={(DOMAIN, device.name)},
+            identifiers={(DOMAIN, device.deviceId)},
             manufacturer="Omlet",
             serial_number=device.deviceId,
             model_id=device.deviceType,

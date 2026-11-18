@@ -1,0 +1,3 @@
+# pytest-homeassistant-custom-component pins the matching homeassistant release.
+pytest-homeassistant-custom-component==0.13.375
+smartcoop-python-sdk==1.1.7
